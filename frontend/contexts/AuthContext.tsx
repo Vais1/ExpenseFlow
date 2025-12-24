@@ -46,17 +46,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleLogin = useCallback(async (credentials: LoginRequest) => {
-    const response = await loginApi(credentials);
-    setAuthToken(response.token);
-    setUser(response);
-    router.push("/dashboard");
+    try {
+      const response = await loginApi(credentials);
+      setAuthToken(response.token);
+      setUser(response);
+      router.push("/dashboard");
+    } catch (error) {
+      // Re-throw to let the component handle the error
+      throw error;
+    }
   }, [router]);
 
   const handleRegister = useCallback(async (data: RegisterRequest) => {
-    const response = await registerApi(data);
-    setAuthToken(response.token);
-    setUser(response);
-    router.push("/dashboard");
+    try {
+      const response = await registerApi(data);
+      setAuthToken(response.token);
+      setUser(response);
+      router.push("/dashboard");
+    } catch (error) {
+      // Re-throw to let the component handle the error
+      throw error;
+    }
   }, [router]);
 
   const handleLogout = useCallback(() => {

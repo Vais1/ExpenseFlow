@@ -60,6 +60,16 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterRequestDto request)
     {
+        // Validate model state
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .SelectMany(x => x.Value!.Errors.Select(e => $"{x.Key}: {e.ErrorMessage}"))
+                .ToList();
+            return BadRequest(new { error = "Validation failed", errors });
+        }
+
         try
         {
             var response = await _authService.RegisterAsync(request);
@@ -72,8 +82,8 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during registration");
-            return StatusCode(500, new { error = "An error occurred during registration" });
+            _logger.LogError(ex, "Error during registration: {Message}", ex.Message);
+            return StatusCode(500, new { error = "An error occurred during registration", message = ex.Message });
         }
     }
 }

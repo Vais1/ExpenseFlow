@@ -14,7 +14,28 @@ Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Return detailed validation errors
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .SelectMany(x => x.Value!.Errors.Select(e => new
+                {
+                    field = x.Key,
+                    message = e.ErrorMessage
+                }))
+                .ToList();
+            
+            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(new
+            {
+                error = "Validation failed",
+                errors
+            });
+        };
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure CORS
@@ -131,7 +152,11 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// app.UseHttpsRedirection(); // Disabled for development to allow HTTP
+// Disable HTTPS redirection for development
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // CORS middleware (must be before Authentication)
 app.UseCors("AllowFrontend");
@@ -141,5 +166,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Add a root endpoint that redirects to Swagger
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

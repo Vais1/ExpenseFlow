@@ -57,7 +57,16 @@ async function apiClient<T>(
       }
     }
 
-    const data = await response.json().catch(() => ({}));
+    let data: any = {};
+    try {
+      const text = await response.text();
+      if (text) {
+        data = JSON.parse(text);
+      }
+    } catch {
+      // If JSON parsing fails, use empty object
+      data = {};
+    }
 
     if (!response.ok) {
       const errorMessage =
@@ -71,6 +80,13 @@ async function apiClient<T>(
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
+    }
+    // Handle network errors (connection refused, etc.)
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new ApiError(
+        "Unable to connect to the server. Please ensure the backend is running.",
+        0
+      );
     }
     throw new ApiError(
       error instanceof Error ? error.message : "Network error",

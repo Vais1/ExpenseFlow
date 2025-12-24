@@ -37,10 +37,17 @@ export default function LoginPage() {
     try {
       await login(data);
       toast.success("Login successful");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Login failed. Please try again."
-      );
+    } catch (error: any) {
+      console.error("Login error:", error);
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.data?.error) {
+        errorMessage = error.data.error;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

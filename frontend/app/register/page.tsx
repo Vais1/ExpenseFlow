@@ -40,10 +40,21 @@ export default function RegisterPage() {
         role: "Employee", // Default role
       });
       toast.success("Registration successful");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Registration failed. Please try again."
-      );
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      let errorMessage = "Registration failed. Please try again.";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.data?.error) {
+        errorMessage = error.data.error;
+      } else if (error?.data?.errors) {
+        errorMessage = Array.isArray(error.data.errors) 
+          ? error.data.errors.join(", ")
+          : error.data.errors;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
