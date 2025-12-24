@@ -11,11 +11,18 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { ExpenseClaim, ExpenseStatus } from "@/types/schema";
 
 interface ExpensesTableProps {
   /** Array of expense claims to display */
   data: ExpenseClaim[];
+  /** Whether to show action buttons (edit/withdraw) for pending expenses */
+  showActions?: boolean;
+  /** Callback when edit is clicked */
+  onEdit?: (expense: ExpenseClaim) => void;
+  /** Callback when withdraw is clicked */
+  onWithdraw?: (expenseId: string) => void;
 }
 
 /**
@@ -40,6 +47,11 @@ const getStatusBadgeVariant = (status: ExpenseStatus): {
       return {
         variant: "destructive",
         className: "",
+      };
+    case "Withdrawn":
+      return {
+        variant: "secondary",
+        className: "border-gray-500/50 bg-gray-500/10 text-gray-700 dark:text-gray-400",
       };
     default:
       return {
@@ -78,12 +90,18 @@ const formatDate = (date: Date | string): string => {
 /**
  * Define table columns for expense claims
  */
-const getColumns = (): ColumnDef<ExpenseClaim>[] => [
+const getColumns = (
+  showActions?: boolean,
+  onEdit?: (expense: ExpenseClaim) => void,
+  onWithdraw?: (expenseId: string) => void
+): ColumnDef<ExpenseClaim>[] => {
+  const columns: ColumnDef<ExpenseClaim>[] = [
   {
     accessorKey: "date",
     header: "Date",
     cell: ({ row }) => {
-      return <div className="text-sm">{formatDate(row.original.date)}</div>;
+      const date = row.original.dateIncurred || row.original.date;
+      return <div className="text-sm">{formatDate(date)}</div>;
     },
   },
   {
@@ -118,6 +136,19 @@ const getColumns = (): ColumnDef<ExpenseClaim>[] => [
     },
   },
   {
+    accessorKey: "createdAt",
+    header: "Submitted",
+    cell: ({ row }) => {
+      const date = row.original.createdAt;
+      if (!date) return <div className="text-sm text-muted-foreground">-</div>;
+      return (
+        <div className="text-sm text-muted-foreground">
+          {formatDate(date)}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
@@ -130,16 +161,61 @@ const getColumns = (): ColumnDef<ExpenseClaim>[] => [
       );
     },
   },
-];
+  ];
+
+  // Add actions column if enabled
+  if (showActions && (onEdit || onWithdraw)) {
+    columns.push({
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const expense = row.original;
+        if (expense.status !== "Pending") {
+          return null;
+        }
+
+        return (
+          <div className="flex gap-2">
+            {onEdit && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onEdit(expense)}
+              >
+                Edit
+              </Button>
+            )}
+            {onWithdraw && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onWithdraw(expense.id)}
+              >
+                Withdraw
+              </Button>
+            )}
+          </div>
+        );
+      },
+    });
+  }
+
+  return columns;
+};
 
 /**
  * Expenses Table component
  * Displays expense claims in a sortable and filterable table
  */
-export const ExpensesTable: React.FC<ExpensesTableProps> = ({ data }) => {
+export const ExpensesTable: React.FC<ExpensesTableProps> = ({
+  data,
+  showActions = false,
+  onEdit,
+  onWithdraw,
+}) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const columns = getColumns();
+  const columns = getColumns(showActions, onEdit, onWithdraw);
 
   const table = useReactTable({
     data,

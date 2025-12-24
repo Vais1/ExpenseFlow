@@ -12,7 +12,7 @@ export type UserRole = "Employee" | "Manager" | "Admin";
 /**
  * Expense claim status values
  */
-export type ExpenseStatus = "Pending" | "Approved" | "Rejected";
+export type ExpenseStatus = "Pending" | "Approved" | "Rejected" | "Withdrawn";
 
 /**
  * User interface representing a system user
@@ -30,10 +30,13 @@ export interface User {
 
 /**
  * Expense claim interface representing an expense submission
+ * Matches backend ExpenseDto structure
  */
 export interface ExpenseClaim {
   /** Unique identifier for the expense claim */
   id: string;
+  /** User ID who submitted the expense */
+  userId: string;
   /** Expense amount in the base currency */
   amount: number;
   /** Category of the expense (e.g., "Travel", "Medical", "Equipment") */
@@ -42,8 +45,14 @@ export interface ExpenseClaim {
   description: string;
   /** Date when the expense was incurred */
   date: Date | string;
+  /** Date when the expense was incurred (API field name) */
+  dateIncurred?: Date | string;
   /** Current status of the expense claim */
   status: ExpenseStatus;
+  /** Reason for rejection (if rejected) */
+  rejectionReason?: string;
+  /** Timestamp when the expense was created */
+  createdAt?: Date | string;
   /** URL to the attached receipt or supporting document */
   attachmentUrl?: string;
 }

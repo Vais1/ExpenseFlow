@@ -4,10 +4,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { UserRole } from "@/types/schema";
 import {
-  Dashboard01Icon,
-  FileCheckIcon,
-  FileTextIcon,
+  LayoutIcon,
+  FolderCheckIcon,
+  FileText,
+  Logout01Icon,
 } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -18,7 +21,7 @@ interface SidebarProps {
 interface NavigationItem {
   label: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: typeof LayoutIcon;
 }
 
 /**
@@ -26,13 +29,14 @@ interface NavigationItem {
  * Displays role-based navigation links
  */
 export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
+  const { logout } = useAuth();
   // Define navigation items based on user role
   const getNavigationItems = (): NavigationItem[] => {
     const baseItems: NavigationItem[] = [
       {
         label: "Dashboard",
         href: "/dashboard",
-        icon: Dashboard01Icon,
+        icon: LayoutIcon,
       },
     ];
 
@@ -42,8 +46,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
           ...baseItems,
           {
             label: "My Claims",
-            href: "/dashboard/my-claims",
-            icon: FileTextIcon,
+            href: "/expenses",
+            icon: FileText,
           },
         ];
       case "Manager":
@@ -51,8 +55,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
           ...baseItems,
           {
             label: "Approvals",
-            href: "/dashboard/approvals",
-            icon: FileCheckIcon,
+            href: "/approvals",
+            icon: FolderCheckIcon,
           },
         ];
       case "Admin":
@@ -60,13 +64,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
           ...baseItems,
           {
             label: "My Claims",
-            href: "/dashboard/my-claims",
-            icon: FileTextIcon,
+            href: "/expenses",
+            icon: FileText,
           },
           {
             label: "Approvals",
-            href: "/dashboard/approvals",
-            icon: FileCheckIcon,
+            href: "/approvals",
+            icon: FolderCheckIcon,
           },
         ];
       default:
@@ -83,7 +87,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {navigationItems.map((item) => {
-          const Icon = item.icon;
           return (
             <Button
               key={item.href}
@@ -95,13 +98,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
               asChild
             >
               <Link href={item.href}>
-                <Icon className="size-5" />
+                <HugeiconsIcon icon={item.icon} className="size-5" />
                 <span>{item.label}</span>
               </Link>
             </Button>
           );
         })}
       </nav>
+      <div className="border-t border-border p-4">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-left font-normal text-muted-foreground hover:bg-muted hover:text-foreground"
+          onClick={logout}
+        >
+          <HugeiconsIcon icon={Logout01Icon} className="size-5" />
+          <span>Logout</span>
+        </Button>
+      </div>
     </aside>
   );
 };

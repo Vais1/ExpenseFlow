@@ -20,6 +20,7 @@ import {
   FieldError,
 } from "@/components/ui/field";
 import { Calendar01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 /**
  * Expense categories available for selection
@@ -39,23 +40,22 @@ const EXPENSE_CATEGORIES = [
 const expenseFormSchema = z.object({
   amount: z
     .number({
-      required_error: "Amount is required",
-      invalid_type_error: "Amount must be a number",
+      message: "Amount must be a number",
     })
     .positive("Amount must be greater than 0")
     .min(0.01, "Amount must be at least 0.01"),
   category: z.enum(EXPENSE_CATEGORIES, {
-    required_error: "Category is required",
+    message: "Category is required",
   }),
   description: z
     .string({
-      required_error: "Description is required",
+      message: "Description is required",
     })
     .min(3, "Description must be at least 3 characters")
     .max(500, "Description must not exceed 500 characters"),
   date: z
     .string({
-      required_error: "Date is required",
+      message: "Date is required",
     })
     .refine(
       (date) => {
@@ -74,7 +74,19 @@ type ExpenseFormData = z.infer<typeof expenseFormSchema>;
 
 interface CreateExpenseFormProps {
   /** Optional callback when form is submitted successfully */
-  onSubmit?: (data: ExpenseFormData) => void;
+  onSubmit?: (data: {
+    amount: number;
+    category: string;
+    description: string;
+    dateIncurred: string;
+  }) => Promise<void> | void;
+  /** Initial form data for editing */
+  initialData?: {
+    amount: number;
+    category: (typeof EXPENSE_CATEGORIES)[number];
+    description: string;
+    date: string;
+  };
 }
 
 /**
@@ -83,6 +95,7 @@ interface CreateExpenseFormProps {
  */
 export const CreateExpenseForm: React.FC<CreateExpenseFormProps> = ({
   onSubmit,
+  initialData,
 }) => {
   const {
     register,
@@ -92,16 +105,25 @@ export const CreateExpenseForm: React.FC<CreateExpenseFormProps> = ({
     formState: { errors, isSubmitting },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseFormSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       date: new Date().toISOString().split("T")[0],
     },
   });
 
   const categoryValue = watch("category");
 
-  const onFormSubmit = (data: ExpenseFormData) => {
-    console.log("Expense form data:", data);
-    onSubmit?.(data);
+  const onFormSubmit = async (data: ExpenseFormData) => {
+    // Convert date to ISO string format expected by backend
+    const submitData = {
+      amount: data.amount,
+      category: data.category,
+      description: data.description,
+      dateIncurred: new Date(data.date).toISOString(),
+    };
+    
+    if (onSubmit) {
+      await onSubmit(submitData);
+    }
   };
 
   return (
@@ -150,7 +172,7 @@ export const CreateExpenseForm: React.FC<CreateExpenseFormProps> = ({
         <Field>
           <FieldLabel htmlFor="date">Date</FieldLabel>
           <div className="relative">
-            <Calendar01Icon className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <HugeiconsIcon icon={Calendar01Icon} className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               id="date"
               type="date"
