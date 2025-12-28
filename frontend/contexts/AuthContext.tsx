@@ -18,6 +18,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Normalizes role value to camelCase format
+ * Handles both PascalCase (legacy) and camelCase (current) formats
+ */
+function normalizeRole(role: string | undefined): UserRole {
+  if (!role) return "employee";
+  const normalized = role.toLowerCase();
+  if (normalized === "employee" || normalized === "manager" || normalized === "admin") {
+    return normalized as UserRole;
+  }
+  return "employee"; // Default fallback
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userId: payload[`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier`] || payload.sub,
           email: payload[`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress`] || payload.email,
           fullName: payload[`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name`] || payload.name,
-          role: (payload[`http://schemas.microsoft.com/ws/2008/06/identity/claims/role`] || payload.role) as UserRole,
+          role: normalizeRole(payload[`http://schemas.microsoft.com/ws/2008/06/identity/claims/role`] || payload.role),
         });
       } catch {
         // Invalid token, remove it

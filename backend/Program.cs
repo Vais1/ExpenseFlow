@@ -1,10 +1,10 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MongoDB.Driver;
-using ExpenseFlow.Configuration;
 using ExpenseFlow.Repositories;
 using ExpenseFlow.Services;
 
@@ -15,6 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configure JSON serialization to use camelCase
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.WriteIndented = builder.Environment.IsDevelopment();
+        // Configure enums to be serialized/deserialized as strings with camelCase naming
+        // AllowIntegerValues = false ensures only string values are accepted
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(
+            JsonNamingPolicy.CamelCase, 
+            allowIntegerValues: false));
+    })
     .ConfigureApiBehaviorOptions(options =>
     {
         // Return detailed validation errors
@@ -90,20 +101,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Configure MongoDB Settings
-var mongoDbSettings = builder.Configuration.GetSection("MongoDb").Get<MongoDbSettings>()
-    ?? throw new InvalidOperationException("MongoDB settings not configured");
-
-builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDb"));
-
-// Register MongoDB Client as Singleton
-builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
-{
-    return new MongoClient(mongoDbSettings.ConnectionString);
-});
-
-// Register MongoService
-builder.Services.AddScoped<IMongoService, MongoService>();
+// Register DbService
+builder.Services.AddScoped<IDbService, DbService>();
 
 // Register Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -169,5 +168,21 @@ app.MapControllers();
 
 // Add a root endpoint that redirects to Swagger
 app.MapGet("/", () => Results.Redirect("/swagger"));
+
+// Initialize Database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var dbService = services.GetRequiredService<IDbService>();
+        await dbService.InitDatabaseAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while initializing the database.");
+    }
+}
 
 app.Run();

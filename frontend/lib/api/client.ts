@@ -69,6 +69,13 @@ async function apiClient<T>(
     }
 
     if (!response.ok) {
+      // Log error details for debugging
+      console.error(`API Error [${response.status}]:`, {
+        url,
+        status: response.status,
+        data,
+      });
+      
       const errorMessage =
         data.error ||
         data.message ||

@@ -41,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
     ];
 
     switch (userRole) {
-      case "Employee":
+      case "employee":
         return [
           ...baseItems,
           {
@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
             icon: FileText,
           },
         ];
-      case "Manager":
+      case "manager":
         return [
           ...baseItems,
           {
@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
             icon: FolderCheckIcon,
           },
         ];
-      case "Admin":
+      case "admin":
         return [
           ...baseItems,
           {

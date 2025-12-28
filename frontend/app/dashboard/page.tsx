@@ -27,7 +27,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { data: myExpenses = [], isLoading: expensesLoading } = useMyExpenses();
-  const { data: pendingApprovals = [], isLoading: approvalsLoading } = usePendingApprovals();
+  const { data: pendingApprovals = [], isLoading: approvalsLoading } = usePendingApprovals({
+    enabled: !!user && (user.role === "manager" || user.role === "admin"),
+  });
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -150,7 +152,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Manager/Admin Specific Section */}
-          {(user.role === "Manager" || user.role === "Admin") && (
+          {(user.role === "manager" || user.role === "admin") && (
             <Card>
               <CardHeader>
                 <CardTitle>Pending Approvals</CardTitle>
@@ -176,8 +178,8 @@ export default function DashboardPage() {
                       </div>
                       <Button asChild>
                         <Link href="/approvals">
-                      <HugeiconsIcon icon={FolderCheckIcon} className="mr-2 size-4" />
-                      Review Approvals
+                          <HugeiconsIcon icon={FolderCheckIcon} className="mr-2 size-4" />
+                          Review Approvals
                         </Link>
                       </Button>
                     </div>
@@ -200,7 +202,7 @@ export default function DashboardPage() {
                     View My Expenses
                   </Link>
                 </Button>
-                {(user.role === "Manager" || user.role === "Admin") && (
+                {(user.role === "manager" || user.role === "admin") && (
                   <Button variant="outline" asChild>
                     <Link href="/approvals">
                       <HugeiconsIcon icon={FolderCheckIcon} className="mr-2 size-4" />

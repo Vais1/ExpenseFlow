@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using ExpenseFlow.Models.Enums;
 
 namespace ExpenseFlow.Models.DTOs;
@@ -13,6 +14,7 @@ public record LoginRequestDto
     /// </summary>
     [Required]
     [EmailAddress]
+    [JsonPropertyName("email")]
     public string Email { get; init; } = string.Empty;
 
     /// <summary>
@@ -20,6 +22,7 @@ public record LoginRequestDto
     /// </summary>
     [Required]
     [MinLength(6)]
+    [JsonPropertyName("password")]
     public string Password { get; init; } = string.Empty;
 }
 
@@ -33,6 +36,7 @@ public record RegisterRequestDto
     /// </summary>
     [Required]
     [EmailAddress]
+    [JsonPropertyName("email")]
     public string Email { get; init; } = string.Empty;
 
     /// <summary>
@@ -40,6 +44,7 @@ public record RegisterRequestDto
     /// </summary>
     [Required]
     [MinLength(6)]
+    [JsonPropertyName("password")]
     public string Password { get; init; } = string.Empty;
 
     /// <summary>
@@ -47,11 +52,13 @@ public record RegisterRequestDto
     /// </summary>
     [Required]
     [MinLength(2)]
+    [JsonPropertyName("fullName")]
     public string FullName { get; init; } = string.Empty;
 
     /// <summary>
     /// User's role (defaults to Employee)
     /// </summary>
+    [JsonPropertyName("role")]
     public UserRole Role { get; init; } = UserRole.Employee;
 }
 
@@ -63,26 +70,31 @@ public record AuthResponseDto
     /// <summary>
     /// JWT token for authenticated requests
     /// </summary>
+    [JsonPropertyName("token")]
     public string Token { get; init; } = string.Empty;
 
     /// <summary>
     /// User ID
     /// </summary>
+    [JsonPropertyName("userId")]
     public string UserId { get; init; } = string.Empty;
 
     /// <summary>
     /// User's email
     /// </summary>
+    [JsonPropertyName("email")]
     public string Email { get; init; } = string.Empty;
 
     /// <summary>
     /// User's full name
     /// </summary>
+    [JsonPropertyName("fullName")]
     public string FullName { get; init; } = string.Empty;
 
     /// <summary>
     /// User's role
     /// </summary>
+    [JsonPropertyName("role")]
     public UserRole Role { get; init; }
 }
 

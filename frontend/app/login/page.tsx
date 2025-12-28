@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldGroup, FieldLabel, FieldError } from "@/components/ui/field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -40,13 +41,13 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error("Login error:", error);
       let errorMessage = "Login failed. Please try again.";
-      
+
       if (error?.message) {
         errorMessage = error.message;
       } else if (error?.data?.error) {
         errorMessage = error.data.error;
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -93,6 +94,13 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Login"}
             </Button>
+
+            <div className="text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link href="/register" className="text-primary hover:underline">
+                Register
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>

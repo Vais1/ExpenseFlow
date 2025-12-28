@@ -36,7 +36,7 @@ public class ExpenseService : IExpenseService
 
         var expense = new Expense
         {
-            UserId = userId,
+            UserId = Guid.Parse(userId),
             Amount = dto.Amount,
             Category = dto.Category,
             Description = dto.Description,
@@ -107,7 +107,7 @@ public class ExpenseService : IExpenseService
         }
 
         // Only the owner can update their expense
-        if (expense.UserId != userId)
+        if (expense.UserId.ToString() != userId)
         {
             throw new UnauthorizedAccessException("You can only update your own expenses");
         }
@@ -150,7 +150,7 @@ public class ExpenseService : IExpenseService
         }
 
         // Only the owner can withdraw their expense
-        if (expense.UserId != userId)
+        if (expense.UserId.ToString() != userId)
         {
             throw new UnauthorizedAccessException("You can only withdraw your own expenses");
         }
@@ -172,8 +172,8 @@ public class ExpenseService : IExpenseService
     {
         return new ExpenseDto
         {
-            Id = expense.Id,
-            UserId = expense.UserId,
+            Id = expense.Id.ToString(),
+            UserId = expense.UserId.ToString(),
             Amount = expense.Amount,
             Category = expense.Category,
             Description = expense.Description,

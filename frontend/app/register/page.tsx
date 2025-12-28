@@ -35,23 +35,52 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      await registerUser({
+      const requestData = {
         ...data,
-        role: "Employee", // Default role
-      });
+        role: "employee" as const, // Default role (camelCase to match backend naming policy)
+      };
+      
+      console.log("Sending registration request:", requestData);
+      
+      await registerUser(requestData);
       toast.success("Registration successful");
     } catch (error: any) {
       console.error("Registration error:", error);
+      console.error("Error data:", error?.data);
+      console.error("Error data.errors:", error?.data?.errors);
+      
       let errorMessage = "Registration failed. Please try again.";
       
-      if (error?.message) {
+      // Handle detailed validation errors from backend
+      // Backend returns errors as array of objects: [{ field: "email", message: "..." }, ...]
+      if (error?.data?.errors && Array.isArray(error.data.errors)) {
+        console.error("Validation errors array:", JSON.stringify(error.data.errors, null, 2));
+        
+        const validationErrors = error.data.errors
+          .map((err: string | { field?: string; message?: string }) => {
+            // Handle string format: "Email: The Email field is required"
+            if (typeof err === "string") {
+              return err;
+            }
+            // Handle object format: { field: "email", message: "..." }
+            if (typeof err === "object" && err !== null) {
+              if (err.message) return err.message;
+              if (err.field && err.message) {
+                const fieldName = err.field.charAt(0).toLowerCase() + err.field.slice(1);
+                return `${fieldName}: ${err.message}`;
+              }
+            }
+            return null;
+          })
+          .filter((msg: string | null) => msg !== null);
+        
+        if (validationErrors.length > 0) {
+          errorMessage = validationErrors.join(". ");
+        }
+      } else if (error?.message) {
         errorMessage = error.message;
       } else if (error?.data?.error) {
         errorMessage = error.data.error;
-      } else if (error?.data?.errors) {
-        errorMessage = Array.isArray(error.data.errors) 
-          ? error.data.errors.join(", ")
-          : error.data.errors;
       }
       
       toast.error(errorMessage);

@@ -49,7 +49,7 @@ public class AuthService : IAuthService
         return new AuthResponseDto
         {
             Token = token,
-            UserId = user.Id,
+            UserId = user.Id.ToString(),
             Email = user.Email,
             FullName = user.FullName,
             Role = user.Role
@@ -78,7 +78,7 @@ public class AuthService : IAuthService
         return new AuthResponseDto
         {
             Token = token,
-            UserId = createdUser.Id,
+            UserId = createdUser.Id.ToString(),
             Email = createdUser.Email,
             FullName = createdUser.FullName,
             Role = createdUser.Role
@@ -93,12 +93,21 @@ public class AuthService : IAuthService
         var audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience not configured");
         var expirationMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "60");
 
+        // Convert enum to camelCase string to match JSON serialization policy
+        var roleString = user.Role switch
+        {
+            UserRole.Employee => "employee",
+            UserRole.Manager => "manager",
+            UserRole.Admin => "admin",
+            _ => user.Role.ToString().ToLowerInvariant()
+        };
+
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, user.FullName),
-            new Claim(ClaimTypes.Role, user.Role.ToString())
+            new Claim(ClaimTypes.Role, roleString)
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

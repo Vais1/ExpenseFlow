@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { CreateExpenseForm } from "@/components/expenses/create-expense-form";
 import { ExpensesTable } from "@/components/expenses/expenses-table";
@@ -116,94 +117,99 @@ export default function ExpensesPage() {
       <Sidebar userRole={user.role} />
       <main className="flex-1 overflow-auto">
         <div className="flex h-full flex-col space-y-6 p-6">
-      {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Expenses</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your expense claims and track their status
-          </p>
-        </div>
-        <Dialog
-          open={isDialogOpen}
-          onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) {
-              setEditingExpense(null);
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>
-              <HugeiconsIcon icon={PlusSignIcon} className="size-4" />
-              New Claim
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editingExpense ? "Edit Expense Claim" : "Create New Expense Claim"}
-              </DialogTitle>
-            </DialogHeader>
-            <CreateExpenseForm
-              onSubmit={handleFormSubmit}
-              initialData={
-                editingExpense
-                  ? {
-                      amount: editingExpense.amount,
-                      category: editingExpense.category as any,
-                      description: editingExpense.description,
-                      date: editingExpense.dateIncurred
-                        ? new Date(editingExpense.dateIncurred)
-                            .toISOString()
-                            .split("T")[0]
-                        : typeof editingExpense.date === "string"
-                        ? editingExpense.date.split("T")[0]
-                        : new Date(editingExpense.date).toISOString().split("T")[0],
-                    }
-                  : undefined
-              }
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Table Section */}
-      <div className="flex-1 rounded-lg border border-border bg-card">
-        <div className="p-6">
-          {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : error ? (
-            <div className="flex h-64 items-center justify-center">
-              <p className="text-sm text-destructive">
-                Failed to load expenses. Please try again.
+          {/* Header Section */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">Expenses</h1>
+              <p className="text-sm text-muted-foreground">
+                Manage your expense claims and track their status
               </p>
             </div>
-          ) : (
-            <ExpensesTable
-              data={expenses.map((exp) => ({
-                id: exp.id,
-                userId: exp.userId,
-                amount: exp.amount,
-                category: exp.category,
-                description: exp.description,
-                date: exp.dateIncurred || exp.createdAt || new Date().toISOString(),
-                dateIncurred: exp.dateIncurred,
-                status: exp.status,
-                rejectionReason: exp.rejectionReason,
-                createdAt: exp.createdAt,
-              }))}
-              showActions={true}
-              onEdit={handleEdit}
-              onWithdraw={handleWithdraw}
-            />
-          )}
-        </div>
-      </div>
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) {
+                  setEditingExpense(null);
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button>
+                  <HugeiconsIcon icon={PlusSignIcon} className="size-4" />
+                  New Claim
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingExpense ? "Edit Expense Claim" : "Create New Expense Claim"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingExpense
+                      ? "Update the details of your expense claim below."
+                      : "Enter the details for your new expense claim."}
+                  </DialogDescription>
+                </DialogHeader>
+                <CreateExpenseForm
+                  onSubmit={handleFormSubmit}
+                  initialData={
+                    editingExpense
+                      ? {
+                        amount: editingExpense.amount,
+                        category: editingExpense.category as any,
+                        description: editingExpense.description,
+                        date: editingExpense.dateIncurred
+                          ? new Date(editingExpense.dateIncurred)
+                            .toISOString()
+                            .split("T")[0]
+                          : typeof editingExpense.date === "string"
+                            ? editingExpense.date.split("T")[0]
+                            : new Date(editingExpense.date).toISOString().split("T")[0],
+                      }
+                      : undefined
+                  }
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Table Section */}
+          <div className="flex-1 rounded-lg border border-border bg-card">
+            <div className="p-6">
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : error ? (
+                <div className="flex h-64 items-center justify-center">
+                  <p className="text-sm text-destructive">
+                    Failed to load expenses. Please try again.
+                  </p>
+                </div>
+              ) : (
+                <ExpensesTable
+                  data={expenses.map((exp) => ({
+                    id: exp.id,
+                    userId: exp.userId,
+                    amount: exp.amount,
+                    category: exp.category,
+                    description: exp.description,
+                    date: exp.dateIncurred || exp.createdAt || new Date().toISOString(),
+                    dateIncurred: exp.dateIncurred,
+                    status: exp.status,
+                    rejectionReason: exp.rejectionReason,
+                    createdAt: exp.createdAt,
+                  }))}
+                  showActions={true}
+                  onEdit={handleEdit}
+                  onWithdraw={handleWithdraw}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </div>

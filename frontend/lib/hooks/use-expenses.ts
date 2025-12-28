@@ -32,10 +32,11 @@ export function useMyExpenses() {
 /**
  * Hook to get pending approvals (Manager only)
  */
-export function usePendingApprovals() {
+export function usePendingApprovals(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: expenseKeys.pending(),
     queryFn: getPendingApprovals,
+    enabled: options?.enabled,
   });
 }
 

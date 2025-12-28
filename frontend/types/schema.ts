@@ -6,8 +6,9 @@
 
 /**
  * User roles in the ExpenseFlow system
+ * Uses camelCase to match backend JSON serialization policy
  */
-export type UserRole = "Employee" | "Manager" | "Admin";
+export type UserRole = "employee" | "manager" | "admin";
 
 /**
  * Expense claim status values

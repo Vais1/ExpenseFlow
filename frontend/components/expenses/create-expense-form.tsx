@@ -120,7 +120,7 @@ export const CreateExpenseForm: React.FC<CreateExpenseFormProps> = ({
       description: data.description,
       dateIncurred: new Date(data.date).toISOString(),
     };
-    
+
     if (onSubmit) {
       await onSubmit(submitData);
     }
@@ -147,7 +147,7 @@ export const CreateExpenseForm: React.FC<CreateExpenseFormProps> = ({
         <Field>
           <FieldLabel htmlFor="category">Category</FieldLabel>
           <Select
-            value={categoryValue}
+            value={categoryValue || ""}
             onValueChange={(value) => {
               setValue("category", value as (typeof EXPENSE_CATEGORIES)[number], {
                 shouldValidate: true,

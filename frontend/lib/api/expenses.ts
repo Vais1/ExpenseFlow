@@ -40,21 +40,21 @@ export interface ExpenseResponse {
 export async function createExpense(
   request: CreateExpenseRequest
 ): Promise<ExpenseResponse> {
-  return post<ExpenseResponse>("/api/expenses", request);
+  return post<ExpenseResponse>("/api/expense", request);
 }
 
 /**
  * Get current user's expenses
  */
 export async function getMyExpenses(): Promise<ExpenseResponse[]> {
-  return get<ExpenseResponse[]>("/api/expenses/my-history");
+  return get<ExpenseResponse[]>("/api/expense/my-history");
 }
 
 /**
  * Get pending approvals (Manager only)
  */
 export async function getPendingApprovals(): Promise<ExpenseResponse[]> {
-  return get<ExpenseResponse[]>("/api/expenses/pending");
+  return get<ExpenseResponse[]>("/api/expense/pending");
 }
 
 /**
@@ -64,7 +64,7 @@ export async function updateExpenseStatus(
   expenseId: string,
   request: UpdateExpenseStatusRequest
 ): Promise<ExpenseResponse> {
-  return patch<ExpenseResponse>(`/api/expenses/${expenseId}/status`, request);
+  return patch<ExpenseResponse>(`/api/expense/${expenseId}/status`, request);
 }
 
 /**
@@ -74,7 +74,7 @@ export async function updateExpense(
   expenseId: string,
   request: CreateExpenseRequest
 ): Promise<ExpenseResponse> {
-  return put<ExpenseResponse>(`/api/expenses/${expenseId}`, request);
+  return put<ExpenseResponse>(`/api/expense/${expenseId}`, request);
 }
 
 /**
@@ -83,6 +83,6 @@ export async function updateExpense(
 export async function withdrawExpense(
   expenseId: string
 ): Promise<ExpenseResponse> {
-  return patch<ExpenseResponse>(`/api/expenses/${expenseId}/withdraw`, {});
+  return patch<ExpenseResponse>(`/api/expense/${expenseId}/withdraw`, {});
 }
 

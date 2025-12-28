@@ -67,7 +67,7 @@ export default function ApprovalsPage() {
 
   // Redirect if not manager/admin
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || (user && user.role !== "Manager" && user.role !== "Admin"))) {
+    if (!authLoading && (!isAuthenticated || (user && user.role !== "manager" && user.role !== "admin"))) {
       router.push("/dashboard");
     }
   }, [isAuthenticated, authLoading, user, router]);
@@ -80,7 +80,7 @@ export default function ApprovalsPage() {
     );
   }
 
-  if (!isAuthenticated || !user || (user.role !== "Manager" && user.role !== "Admin")) {
+  if (!isAuthenticated || !user || (user.role !== "manager" && user.role !== "admin")) {
     return null;
   }
 

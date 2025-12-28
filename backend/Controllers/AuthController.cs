@@ -60,13 +60,27 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterRequestDto request)
     {
+        // Log the incoming request for debugging
+        _logger.LogInformation("Registration request received: Email={Email}, FullName={FullName}, Role={Role}", 
+            request?.Email, request?.FullName, request?.Role);
+        
         // Validate model state
         if (!ModelState.IsValid)
         {
             var errors = ModelState
                 .Where(x => x.Value?.Errors.Count > 0)
-                .SelectMany(x => x.Value!.Errors.Select(e => $"{x.Key}: {e.ErrorMessage}"))
+                .SelectMany(x => x.Value!.Errors.Select(e => new
+                {
+                    field = x.Key,
+                    message = e.ErrorMessage
+                }))
                 .ToList();
+            
+            // Log validation errors for debugging
+            _logger.LogWarning("Validation failed with {Count} errors: {Errors}", 
+                errors.Count, 
+                string.Join(", ", errors.Select(e => $"{e.field}: {e.message}")));
+            
             return BadRequest(new { error = "Validation failed", errors });
         }
 
@@ -83,7 +97,21 @@ public class AuthController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during registration: {Message}", ex.Message);
-            return StatusCode(500, new { error = "An error occurred during registration", message = ex.Message });
+            _logger.LogError(ex, "Stack trace: {StackTrace}", ex.StackTrace);
+            
+            // Include inner exception details if available
+            var errorMessage = ex.Message;
+            if (ex.InnerException != null)
+            {
+                errorMessage += $" Inner: {ex.InnerException.Message}";
+                _logger.LogError(ex.InnerException, "Inner exception: {Message}", ex.InnerException.Message);
+            }
+            
+            return StatusCode(500, new { 
+                error = "An error occurred during registration", 
+                message = errorMessage,
+                details = ex.GetType().Name
+            });
         }
     }
 }
