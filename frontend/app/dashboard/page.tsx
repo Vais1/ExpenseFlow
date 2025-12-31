@@ -17,7 +17,7 @@ export default function DashboardPage() {
             if (session.user.role === 'User') {
                 router.replace('/dashboard/my-requests');
             } else {
-                router.replace('/dashboard/approvals');
+                router.replace('/dashboard/overview');
             }
         } else {
             router.replace('/auth/login');

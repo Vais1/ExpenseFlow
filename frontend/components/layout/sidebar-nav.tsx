@@ -26,12 +26,12 @@ const ROLE_LINKS: Record<UserRole | 'Default', SidebarLink[]> = {
         { href: '/dashboard/my-requests?action=new', label: 'New Request', icon: PlusCircle },
     ],
     Management: [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/dashboard/overview', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/dashboard/approvals', label: 'Approvals', icon: CheckCircle },
         { href: '/dashboard/history', label: 'History', icon: History },
     ],
     Admin: [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/dashboard/overview', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/dashboard/vendors', label: 'Vendor Management', icon: Users },
         { href: '/dashboard/invoices', label: 'All Invoices', icon: Files },
     ],
