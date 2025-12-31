@@ -23,7 +23,7 @@ interface SidebarLink {
 const ROLE_LINKS: Record<UserRole | 'Default', SidebarLink[]> = {
     User: [
         { href: '/dashboard', label: 'My Requests', icon: FileText },
-        { href: '/dashboard/my-requests?action=new', label: 'New Request', icon: PlusCircle },
+        { href: '/dashboard/history', label: 'History', icon: History },
     ],
     Management: [
         { href: '/dashboard/overview', label: 'Dashboard', icon: LayoutDashboard },
