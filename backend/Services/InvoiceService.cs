@@ -83,19 +83,61 @@ public class InvoiceService : IInvoiceService
 
     public async Task<InvoiceReadDto> CreateInvoiceAsync(InvoiceCreateDto createDto, int currentUserId)
     {
-        // Validate vendor exists
-        var vendor = await _vendorRepository.GetByIdAsync(createDto.VendorId);
-        if (vendor == null)
+        int finalVendorId;
+
+        // Logic to handle VendorId or VendorName
+        if (createDto.VendorId.HasValue && createDto.VendorId.Value > 0)
         {
-            _logger.LogWarning("Vendor {VendorId} not found for invoice creation", createDto.VendorId);
-            throw new InvalidOperationException($"Vendor with ID {createDto.VendorId} not found");
+            // Case 1: Existing Vendor ID provided
+            var vendor = await _vendorRepository.GetByIdAsync(createDto.VendorId.Value);
+            if (vendor == null)
+            {
+                _logger.LogWarning("Vendor {VendorId} not found for invoice creation", createDto.VendorId);
+                throw new InvalidOperationException($"Vendor with ID {createDto.VendorId} not found");
+            }
+            finalVendorId = vendor.Id;
+        }
+        else if (!string.IsNullOrWhiteSpace(createDto.VendorName))
+        {
+            // Case 2: Vendor Name provided (Find or Create)
+            var vendorName = createDto.VendorName.Trim();
+            
+            // Try to find existing vendor by name (Case-insensitive check would be ideal, but simple match for now)
+            var existingVendor = await _context.Vendors
+                .FirstOrDefaultAsync(v => v.Name.ToLower() == vendorName.ToLower());
+
+            if (existingVendor != null)
+            {
+                finalVendorId = existingVendor.Id;
+            }
+            else
+            {
+                // Create new vendor
+                var newVendor = new Vendor
+                {
+                    Name = vendorName,
+                    Category = "Uncategorized", // Default category
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                
+                await _vendorRepository.AddAsync(newVendor);
+                await _vendorRepository.SaveChangesAsync(); // Save to generate ID
+                finalVendorId = newVendor.Id;
+                
+                _logger.LogInformation("Created new vendor '{VendorName}' (ID: {VendorId}) for invoice creation", vendorName, finalVendorId);
+            }
+        }
+        else
+        {
+             throw new ArgumentException("Either VendorId or VendorName must be provided.");
         }
 
         var invoice = new Invoice
         {
             Amount = createDto.Amount,
             Description = createDto.Description,
-            VendorId = createDto.VendorId,
+            VendorId = finalVendorId,
             UserId = currentUserId,
             Status = InvoiceStatus.Pending, // Always default to Pending
             CreatedAt = DateTime.UtcNow,

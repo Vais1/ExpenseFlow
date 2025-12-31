@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import {
     Table,
@@ -12,62 +11,23 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-    CreateInvoiceDialog,
-    Invoice,
-} from '@/components/create-invoice-dialog';
-
-// Initial Mock Data
-const INITIAL_INVOICES: Invoice[] = [
-    {
-        id: 'INV-001',
-        vendor: 'Dell',
-        date: '2025-05-15',
-        amount: 1299.99,
-        status: 'Approved',
-    },
-    {
-        id: 'INV-002',
-        vendor: 'Staples',
-        date: '2025-05-18',
-        amount: 245.50,
-        status: 'Pending',
-    },
-    {
-        id: 'INV-003',
-        vendor: 'Microsoft',
-        date: '2025-05-20',
-        amount: 89.99,
-        status: 'Rejected',
-    },
-    {
-        id: 'INV-004',
-        vendor: 'Tenaga Nasional',
-        date: '2025-05-22',
-        amount: 450.00,
-        status: 'Pending',
-    },
-    {
-        id: 'INV-005',
-        vendor: 'Dell',
-        date: '2025-05-25',
-        amount: 3200.00,
-        status: 'Approved',
-    },
-];
+import { CreateInvoiceDialog } from '@/components/create-invoice-dialog';
+import { useInvoices, useDeleteInvoice } from '@/hooks/use-invoices';
+import { InvoiceStatus } from '@/lib/types';
+import { Spinner } from '@/components/ui/spinner';
+import { format } from 'date-fns';
 
 export default function MyRequestsPage() {
-    const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
+    const { data: invoices, isLoading, error } = useInvoices();
+    const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
 
-    const handleDelete = (id: string) => {
-        setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+    const handleDelete = (id: number) => {
+        if (confirm('Are you sure you want to delete this invoice?')) {
+            deleteInvoice(id);
+        }
     };
 
-    const handleCreate = (newInvoice: Invoice) => {
-        setInvoices((prev) => [newInvoice, ...prev]);
-    };
-
-    const getStatusBadge = (status: Invoice['status']) => {
+    const getStatusBadge = (status: InvoiceStatus) => {
         switch (status) {
             case 'Approved':
                 return (
@@ -90,6 +50,22 @@ export default function MyRequestsPage() {
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="flex h-64 items-center justify-center">
+                <Spinner className="h-8 w-8 text-muted-foreground" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex h-64 items-center justify-center text-destructive text-sm">
+                Failed to load requests. Please try again.
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-4">
@@ -99,7 +75,8 @@ export default function MyRequestsPage() {
                         Manage your invoice requests and view their status.
                     </p>
                 </div>
-                <CreateInvoiceDialog onSuccess={handleCreate} />
+                {/* onSuccess is no longer needed as the query invalidates itself */}
+                <CreateInvoiceDialog />
             </div>
 
             <div className="rounded border bg-card/50">
@@ -115,7 +92,7 @@ export default function MyRequestsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {invoices.length === 0 ? (
+                        {!invoices || invoices.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="h-24 text-center text-xs text-muted-foreground">
                                     No requests found.
@@ -124,21 +101,27 @@ export default function MyRequestsPage() {
                         ) : (
                             invoices.map((invoice) => (
                                 <TableRow key={invoice.id} className="h-10">
-                                    <TableCell className="font-medium text-xs">{invoice.id}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{invoice.vendor}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{invoice.date}</TableCell>
-                                    <TableCell className="text-xs font-medium">${invoice.amount.toFixed(2)}</TableCell>
+                                    <TableCell className="font-medium text-xs dark:text-gray-300">#{invoice.id}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">{invoice.vendorName}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">
+                                        {format(new Date(invoice.createdAt), 'MMM dd, yyyy')}
+                                    </TableCell>
+                                    <TableCell className="text-xs font-medium dark:text-gray-300">${invoice.amount.toFixed(2)}</TableCell>
                                     <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
-                                            onClick={() => handleDelete(invoice.id)}
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                            <span className="sr-only">Delete</span>
-                                        </Button>
+                                        {invoice.status === 'Pending' && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
+                                                onClick={() => handleDelete(invoice.id)}
+                                                disabled={isDeleting}
+                                                title="Delete Invoice"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                                <span className="sr-only">Delete</span>
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))

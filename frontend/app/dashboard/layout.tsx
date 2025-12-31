@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
+import { MobileSidebar } from '@/components/layout/mobile-sidebar';
 import { authService } from '@/services/auth';
+
+import { SystemHealth } from '@/components/system-health';
 
 export default function DashboardLayout({
     children,
@@ -15,24 +18,27 @@ export default function DashboardLayout({
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const session = authService.getSession();
-        if (!session) {
-            // Redirect immediately if not authenticated
-            router.push('/auth/login');
-        } else {
-            setIsAuthenticated(true);
-        }
-        setLoading(false);
+        const validateSession = async () => {
+            const session = await authService.refreshSession();
+            if (!session) {
+                // Redirect immediately if not authenticated
+                router.push('/auth/login');
+            } else {
+                setIsAuthenticated(true);
+            }
+            setLoading(false);
+        };
+        validateSession();
     }, [router]);
 
     if (loading) {
-        // Minimal loading UI to prevent layout shift before redirect logic hits
         return (
-            <div className="min-h-screen w-full flex bg-background">
-                <div className="w-64 border-r bg-card h-full animate-pulse flex-none" />
-                <div className="flex-1 p-8 space-y-4">
-                    <div className="h-8 w-48 bg-muted rounded animate-pulse" />
-                    <div className="h-64 w-full bg-muted rounded animate-pulse" />
+            <div className="flex h-screen items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-2">
+                    {/* Assuming Spinner component exists, if not, this would cause an error */}
+                    {/* <Spinner className="h-8 w-8 text-primary" /> */}
+                    <div className="h-8 w-8 bg-primary rounded-full animate-spin" /> {/* Placeholder for Spinner */}
+                    <p className="text-sm text-muted-foreground animate-pulse">Verifying session...</p>
                 </div>
             </div>
         );
@@ -41,13 +47,21 @@ export default function DashboardLayout({
     if (!isAuthenticated) return null; // Logic in effect will handle redirect
 
     return (
-        <div className="flex h-screen w-full overflow-hidden bg-white">
+        <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">
+            {/* Desktop Sidebar - hidden on mobile */}
             <Sidebar />
-            <main className="flex-1 overflow-auto bg-slate-50/30">
-                <div className="h-full w-full p-6">
-                    {children}
-                </div>
-            </main>
+
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+                {/* Mobile Header - hidden on desktop */}
+                <MobileSidebar />
+
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 transition-all duration-300 ease-in-out">
+                    <div className="mx-auto max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
+                        {children}
+                    </div>
+                </main>
+            </div>
+            <SystemHealth />
         </div>
     );
 }

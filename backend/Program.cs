@@ -204,7 +204,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Disabled in dev to avoid 'Failed to determine the https port' warning when running on HTTP only
 
 // Enable CORS
 app.UseCors("AllowAll"); // Use "Production" policy in production
@@ -228,6 +228,10 @@ using (var scope = app.Services.CreateScope())
         {
             context.Database.Migrate();
             Console.WriteLine("Database migrations applied successfully.");
+
+            // Seed initial data
+            DbInitializer.Seed(context);
+            Console.WriteLine("Database seeding completed.");
         }
     }
     catch (Exception ex)

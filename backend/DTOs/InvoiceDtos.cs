@@ -13,8 +13,11 @@ public class InvoiceCreateDto
     [StringLength(500, MinimumLength = 5, ErrorMessage = "Description must be between 5 and 500 characters")]
     public string Description { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vendor is required")]
-    public int VendorId { get; set; }
+    // VendorId is now optional if VendorName is provided
+    public int? VendorId { get; set; }
+
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Vendor name must be between 2 and 100 characters")]
+    public string? VendorName { get; set; }
 }
 
 public class InvoiceUpdateStatusDto

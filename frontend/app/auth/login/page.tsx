@@ -47,8 +47,10 @@ export default function LoginPage() {
         try {
             await authService.login(data.username, data.password);
             router.push('/dashboard');
-        } catch (err) {
-            setError('Invalid username or password');
+        } catch (err: any) {
+            // Safe error extraction from Axios
+            const message = err.response?.data?.message || 'Invalid username or password';
+            setError(message);
         } finally {
             setIsLoading(false);
         }

@@ -14,66 +14,72 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { authService } from '@/services/auth';
-
-interface Vendor {
-    id: string;
-    name: string;
-}
-
-const INITIAL_VENDORS: Vendor[] = [
-    { id: 'V-001', name: 'Dell' },
-    { id: 'V-002', name: 'Staples' },
-    { id: 'V-003', name: 'Tenaga Nasional' },
-    { id: 'V-004', name: 'Microsoft' },
-    { id: 'V-005', name: 'Amazon Web Services' },
-];
+import { useVendors, useCreateVendor, useUpdateVendor, useDeleteVendor } from '@/hooks/use-vendors';
+import { Spinner } from '@/components/ui/spinner';
+import { toast } from 'sonner';
 
 export default function VendorManagementPage() {
     const router = useRouter();
-    const [vendors, setVendors] = useState<Vendor[]>(INITIAL_VENDORS);
+    const { data: vendors, isLoading, error } = useVendors();
+    const { mutate: createVendor, isPending: isCreating } = useCreateVendor();
+    const { mutate: updateVendor, isPending: isUpdating } = useUpdateVendor();
+    const { mutate: deleteVendor, isPending: isDeleting } = useDeleteVendor();
+
     const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
     useEffect(() => {
         const session = authService.getSession();
         if (!session || session.user.role !== 'Admin') {
             router.push('/dashboard');
-            return;
+        } else {
+            setIsAuthorized(true);
         }
-        setLoading(false);
     }, [router]);
 
-    const filteredVendors = vendors.filter((vendor) =>
+    const filteredVendors = vendors?.filter((vendor) =>
         vendor.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    ) || [];
 
     const handleAdd = () => {
         const name = window.prompt('Enter vendor name:');
-        if (name) {
-            const newVendor: Vendor = {
-                id: `V-${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
-                name,
-            };
-            setVendors([...vendors, newVendor]);
+        const category = window.prompt('Enter vendor category:', 'General');
+        if (name && category) {
+            createVendor({ name, category });
         }
     };
 
-    const handleEdit = (id: string, currentName: string) => {
+    const handleEdit = (id: number, currentName: string, currentCategory: string) => {
         const newName = window.prompt('Update vendor name:', currentName);
-        if (newName && newName !== currentName) {
-            setVendors(
-                vendors.map((v) => (v.id === id ? { ...v, name: newName } : v))
-            );
+        const newCategory = window.prompt('Update vendor category:', currentCategory);
+        if (newName && newCategory) {
+            updateVendor({ id, payload: { name: newName, category: newCategory } });
         }
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = (id: number) => {
         if (window.confirm('Are you sure you want to delete this vendor?')) {
-            setVendors(vendors.filter((v) => v.id !== id));
+            deleteVendor(id);
         }
     };
 
-    if (loading) return null;
+    if (!isAuthorized) return null;
+
+    if (isLoading) {
+        return (
+            <div className="flex h-64 items-center justify-center">
+                <Spinner className="h-8 w-8 text-muted-foreground" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex h-64 items-center justify-center text-destructive text-sm">
+                Failed to load vendors. Please try again.
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4">
@@ -84,7 +90,7 @@ export default function VendorManagementPage() {
                         Manage system vendors and suppliers.
                     </p>
                 </div>
-                <Button size="sm" className="gap-2 h-8 text-xs font-medium" onClick={handleAdd}>
+                <Button size="sm" className="gap-2 h-8 text-xs font-medium" onClick={handleAdd} disabled={isCreating}>
                     <Plus className="h-3.5 w-3.5" />
                     Add Vendor
                 </Button>
@@ -108,28 +114,31 @@ export default function VendorManagementPage() {
                         <TableRow className="h-9 hover:bg-transparent">
                             <TableHead className="w-[100px] h-9 text-xs font-semibold">ID</TableHead>
                             <TableHead className="h-9 text-xs font-semibold">Vendor Name</TableHead>
+                            <TableHead className="h-9 text-xs font-semibold">Category</TableHead>
                             <TableHead className="h-9 text-xs font-semibold text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredVendors.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={3} className="h-24 text-center text-xs text-muted-foreground">
+                                <TableCell colSpan={4} className="h-24 text-center text-xs text-muted-foreground">
                                     No vendors found.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             filteredVendors.map((vendor) => (
                                 <TableRow key={vendor.id} className="h-10">
-                                    <TableCell className="font-medium text-xs">{vendor.id}</TableCell>
+                                    <TableCell className="font-medium text-xs dark:text-gray-300">#{vendor.id}</TableCell>
                                     <TableCell className="text-xs text-muted-foreground">{vendor.name}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">{vendor.category}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-1">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 className="h-7 w-7 text-muted-foreground/70 hover:text-primary hover:bg-primary/10"
-                                                onClick={() => handleEdit(vendor.id, vendor.name)}
+                                                onClick={() => handleEdit(vendor.id, vendor.name, vendor.category)}
+                                                disabled={isUpdating}
                                             >
                                                 <Edit2 className="h-3.5 w-3.5" />
                                                 <span className="sr-only">Edit</span>
@@ -139,6 +148,7 @@ export default function VendorManagementPage() {
                                                 size="icon"
                                                 className="h-7 w-7 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
                                                 onClick={() => handleDelete(vendor.id)}
+                                                disabled={isDeleting}
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                                 <span className="sr-only">Delete</span>

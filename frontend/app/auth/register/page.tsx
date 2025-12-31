@@ -50,7 +50,7 @@ export default function RegisterPage() {
     } = useForm<RegisterValues>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
-            role: undefined,
+            role: 'User',
         },
     });
 
@@ -61,33 +61,19 @@ export default function RegisterPage() {
         setError(null);
 
         try {
-            // Mock registration: In a real app, this would be an API call to create user
-            // For this demo, we can simulate creation by just logging in with these credentials.
-            // Since our mock auth service uses username sniffing for roles, we need to respect that logic 
-            // OR we just pretend the user was created and auto-login.
+            // Real API registration
+            // Note: The backend returns the session (token + user) on successful registration
+            const session = await authService.register(data.username, data.password, data.role);
 
-            // To make the demo feel "real", we'll just auto-login.
-            // Note: In the mock service, role is determined by username.
-            // If we want to support the "Role Select" feature, we might need to Mock it by
-            // forcefully setting the session role in localStorage after login, or 
-            // updating the authService to accept a forced role for the purpose of this demo.
-            // However, the simplest production-grade-feeling way given the constraints 
-            // is to just login. If the user picked "Admin" but username isn't "admin", 
-            // the mock service assigns "User". 
-            // Let's rely on the service logic but maybe we can override it for the session
-            // to respect the user's choice in this specific demo flow.
-
-            const session = await authService.login(data.username, data.password);
-
-            // Override role for demo purposes if it differs (since mock service is simple)
+            // Just double check consistency (optional)
             if (session.user.role !== data.role) {
-                session.user.role = data.role;
-                localStorage.setItem('vendorpay_session', JSON.stringify(session));
+                console.warn("Backend assigned different role than requested");
             }
 
             router.push('/dashboard');
-        } catch (err) {
-            setError('Registration failed. Please try again.');
+        } catch (err: any) {
+            const message = err.response?.data?.message || 'Registration failed. Please try again.';
+            setError(message);
         } finally {
             setIsLoading(false);
         }

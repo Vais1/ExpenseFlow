@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -26,33 +27,49 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { InvoiceCreateSchema } from '@/lib/types'; // We updated this schema in the previous step
+import { useCreateInvoice } from '@/hooks/use-invoices';
 
-// Invoice Type Definition (shared with parent ideally, but defining here for now or importing if we had a types file)
-// For this task, we'll define the shape expected by the parent.
-export interface Invoice {
-    id: string;
-    vendor: string;
-    date: string;
-    amount: number;
-    status: 'Pending' | 'Approved' | 'Rejected';
-}
+// Hardcoded list as requested to replace backend fetch for the dropdown options
+const VENDOR_OPTIONS = [
+    "Office Depot",
+    "Tech Supplies Inc",
+    "Cleaning Services Co",
+    "Catering Experts"
+];
 
-const invoiceSchema = z.object({
-    vendor: z.enum(['Dell', 'Staples', 'Tenaga Nasional', 'Microsoft']),
-    amount: z.coerce
-        .number()
-        .min(0.01, 'Amount must be greater than 0')
-        .multipleOf(0.01, 'Amount must have at most 2 decimal places'),
-});
+// Helper type extending the DTO to include our frontend-only field
+type InvoiceFormValues = z.infer<typeof InvoiceCreateSchema>;
 
-type InvoiceValues = z.infer<typeof invoiceSchema>;
-
-interface CreateInvoiceDialogProps {
-    onSuccess: (invoice: Invoice) => void;
-}
-
-export function CreateInvoiceDialog({ onSuccess }: CreateInvoiceDialogProps) {
+export function CreateInvoiceDialog() {
     const [open, setOpen] = useState(false);
+    const [isOtherVendor, setIsOtherVendor] = useState(false);
+
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const { mutate: createInvoice, isPending } = useCreateInvoice();
+
+    // Auto-open if query param exists
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            setOpen(true);
+        }
+    }, [searchParams]);
+
+    const handleOpenChange = (isOpen: boolean) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+            const params = new URLSearchParams(searchParams.toString());
+            if (params.get('action') === 'new') {
+                params.delete('action');
+                router.replace(`${pathname}?${params.toString()}`);
+            }
+            reset();
+            setIsOtherVendor(false);
+        }
+    };
 
     const {
         register,
@@ -62,29 +79,45 @@ export function CreateInvoiceDialog({ onSuccess }: CreateInvoiceDialogProps) {
         reset,
         formState: { errors },
         trigger,
-    } = useForm<InvoiceValues>({
-        resolver: zodResolver(invoiceSchema) as any,
+    } = useForm<InvoiceFormValues>({
+        resolver: zodResolver(InvoiceCreateSchema),
+        defaultValues: {
+            amount: undefined,
+            description: '',
+        }
     });
 
-    const selectedVendor = watch('vendor');
+    const selectedVendorName = watch('vendorName');
 
-    const onSubmit = (data: InvoiceValues) => {
-        const newInvoice: Invoice = {
-            id: Math.random().toString(36).substring(2, 9).toUpperCase(),
-            vendor: data.vendor,
-            date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+    const onSubmit = (data: InvoiceFormValues) => {
+        // Decide which name to send
+        // If "Other" was active, we prefer customVendorName
+        // Otherwise we use the selected vendorName
+        const finalVendorName = isOtherVendor ? data.customVendorName : data.vendorName;
+
+        if (!finalVendorName) {
+            toast.error("Please specify a vendor");
+            return;
+        }
+
+        createInvoice({
             amount: data.amount,
-            status: 'Pending',
-        };
-
-        onSuccess(newInvoice);
-        toast.success('Request created successfully');
-        setOpen(false);
-        reset();
+            description: data.description,
+            vendorName: finalVendorName,
+            // We do NOT send vendorId anymore, allowing backend to lookup/create by name
+        }, {
+            onSuccess: () => {
+                toast.success('Invoice created successfully');
+                handleOpenChange(false);
+            },
+            onError: () => {
+                toast.error('Failed to create invoice');
+            }
+        });
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button size="sm" className="gap-2 h-8 text-xs font-medium">
                     <PlusCircle className="h-3.5 w-3.5" />
@@ -95,7 +128,7 @@ export function CreateInvoiceDialog({ onSuccess }: CreateInvoiceDialogProps) {
                 <DialogHeader className="p-4 bg-slate-50/50 border-b space-y-1">
                     <DialogTitle className="text-sm font-semibold">New Invoice Request</DialogTitle>
                     <DialogDescription className="text-xs">
-                        Submit a new invoice for approval. Click save when you&apos;re done.
+                        Submit a new invoice for approval. Click submit when you&apos;re done.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -104,31 +137,72 @@ export function CreateInvoiceDialog({ onSuccess }: CreateInvoiceDialogProps) {
                             <Label htmlFor="vendor" className="text-right text-xs font-medium text-muted-foreground">
                                 Vendor
                             </Label>
-                            <div className="col-span-3">
+                            <div className="col-span-3 space-y-2">
                                 <Select
                                     onValueChange={(value) => {
-                                        setValue('vendor', value as any);
-                                        trigger('vendor');
+                                        if (value === "other") {
+                                            setIsOtherVendor(true);
+                                            setValue('vendorName', ''); // clear main selection
+                                        } else {
+                                            setIsOtherVendor(false);
+                                            setValue('vendorName', value);
+                                            setValue('customVendorName', undefined); // clear custom
+                                        }
+                                        trigger('vendorName');
                                     }}
-                                    value={selectedVendor}
+                                    value={isOtherVendor ? "other" : selectedVendorName || ""}
                                 >
                                     <SelectTrigger id="vendor" className="h-8 text-xs">
                                         <SelectValue placeholder="Select vendor" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Dell" className="text-xs">Dell</SelectItem>
-                                        <SelectItem value="Staples" className="text-xs">Staples</SelectItem>
-                                        <SelectItem value="Tenaga Nasional" className="text-xs">Tenaga Nasional</SelectItem>
-                                        <SelectItem value="Microsoft" className="text-xs">Microsoft</SelectItem>
+                                        {VENDOR_OPTIONS.map((vendor) => (
+                                            <SelectItem key={vendor} value={vendor} className="text-xs">
+                                                {vendor}
+                                            </SelectItem>
+                                        ))}
+                                        <SelectItem value="other" className="text-xs font-medium text-primary">
+                                            Other...
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                {errors.vendor && (
+
+                                {isOtherVendor && (
+                                    <Input
+                                        placeholder="Enter vendor name"
+                                        className="h-8 text-xs"
+                                        {...register('customVendorName')}
+                                    />
+                                )}
+
+                                {errors.vendorName && !isOtherVendor && (
+                                    <p className="text-[10px] text-destructive font-medium mt-1">{errors.vendorName.message}</p>
+                                )}
+                                {errors.customVendorName && isOtherVendor && (
+                                    <p className="text-[10px] text-destructive font-medium mt-1">{errors.customVendorName.message}</p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="description" className="text-right text-xs font-medium text-muted-foreground">
+                                Description
+                            </Label>
+                            <div className="col-span-3">
+                                <Input
+                                    id="description"
+                                    placeholder="Office supplies..."
+                                    className="h-8 text-xs"
+                                    {...register('description')}
+                                />
+                                {errors.description && (
                                     <p className="text-[10px] text-destructive font-medium mt-1">
-                                        {errors.vendor.message}
+                                        {errors.description.message}
                                     </p>
                                 )}
                             </div>
                         </div>
+
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="amount" className="text-right text-xs font-medium text-muted-foreground">
                                 Amount
@@ -140,7 +214,7 @@ export function CreateInvoiceDialog({ onSuccess }: CreateInvoiceDialogProps) {
                                     step="0.01"
                                     placeholder="0.00"
                                     className="h-8 text-xs"
-                                    {...register('amount')}
+                                    {...register('amount', { valueAsNumber: true })}
                                 />
                                 {errors.amount && (
                                     <p className="text-[10px] text-destructive font-medium mt-1">
@@ -151,7 +225,9 @@ export function CreateInvoiceDialog({ onSuccess }: CreateInvoiceDialogProps) {
                         </div>
                     </div>
                     <DialogFooter className="p-3 bg-slate-50/50 border-t">
-                        <Button type="submit" size="sm" className="h-8 text-xs w-full sm:w-auto">Submit Request</Button>
+                        <Button type="submit" size="sm" className="h-8 text-xs w-full sm:w-auto" disabled={isPending}>
+                            {isPending ? 'Submitting...' : 'Submit Request'}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
