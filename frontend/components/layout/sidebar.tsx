@@ -61,9 +61,10 @@ export function Sidebar() {
             </Button>
 
             {/* Header */}
-            <div className={cn("p-4 flex items-center h-16", isCollapsed ? "justify-center" : "gap-3")}>
-                <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <Wallet className="h-4 w-4 text-primary-foreground" />
+            <div className={cn("p-4 flex items-center h-14", isCollapsed ? "justify-center" : "gap-3")}>
+                <div className="h-8 w-8 relative flex-shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo.svg" alt="VendorPay Logo" className="h-full w-full object-contain" />
                 </div>
                 {!isCollapsed && (
                     <div className="flex flex-col overflow-hidden">
