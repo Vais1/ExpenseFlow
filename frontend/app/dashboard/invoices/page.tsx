@@ -125,10 +125,7 @@ export default function AllInvoicesPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-4">
                 <div>
-                    <h1 className="text-lg font-semibold tracking-tight text-foreground">All Invoices</h1>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        View all invoices across the organization.
-                    </p>
+                    <h1 className="text-lg font-semibold tracking-tight text-foreground">Invoices</h1>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="relative">

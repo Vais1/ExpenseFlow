@@ -130,10 +130,7 @@ export default function VendorManagementPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-4">
                 <div>
-                    <h1 className="text-lg font-semibold tracking-tight text-foreground">Vendor Management</h1>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        Manage system vendors and suppliers.
-                    </p>
+                    <h1 className="text-lg font-semibold tracking-tight text-foreground">Vendors</h1>
                 </div>
                 <Button size="sm" className="gap-2 h-8 text-xs font-medium" onClick={handleAddClick} disabled={isCreating}>
                     <Plus className="h-3.5 w-3.5" />

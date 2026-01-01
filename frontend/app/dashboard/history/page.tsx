@@ -125,10 +125,7 @@ export default function HistoryPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-4">
                 <div>
-                    <h1 className="text-lg font-semibold tracking-tight text-foreground">Request History</h1>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        Log of all invoice requests and their approval status.
-                    </p>
+                    <h1 className="text-lg font-semibold tracking-tight text-foreground">History</h1>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="relative">

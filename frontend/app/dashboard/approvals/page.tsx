@@ -126,9 +126,6 @@ export default function ApprovalsPage() {
             <div className="flex items-center justify-between border-b pb-4">
                 <div>
                     <h1 className="text-lg font-semibold tracking-tight text-foreground">Approvals</h1>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        Review and process invoice requests.
-                    </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="relative">

@@ -146,9 +146,6 @@ export default function MyRequestsPage() {
             <div className="flex items-center justify-between border-b pb-4">
                 <div>
                     <h1 className="text-lg font-semibold tracking-tight text-foreground">My Requests</h1>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        Manage your invoice requests and view their status.
-                    </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="relative">
