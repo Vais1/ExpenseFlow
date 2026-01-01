@@ -110,11 +110,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 // Configure JWT Authentication
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var jwtSecret = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured in appsettings.json");
-var jwtIssuer = jwtSettings["Issuer"] ?? "VendorPayAPI";
-var jwtAudience = jwtSettings["Audience"] ?? "VendorPayClient";
-var jwtExpiryMinutes = int.Parse(jwtSettings["ExpiryMinutes"] ?? "60");
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") 
+                ?? builder.Configuration["JwtSettings:SecretKey"] 
+                ?? throw new InvalidOperationException("JWT Secret Key is not configured. Set JWT_SECRET environment variable or JwtSettings:SecretKey in appsettings.json");
+
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
+                ?? builder.Configuration["JwtSettings:Issuer"] 
+                ?? "VendorPayAPI";
+
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
+                  ?? builder.Configuration["JwtSettings:Audience"] 
+                  ?? "VendorPayClient";
+
+var jwtExpiryMinutesStr = Environment.GetEnvironmentVariable("JWT_EXPIRY_MINUTES") 
+                          ?? builder.Configuration["JwtSettings:ExpiryMinutes"] 
+                          ?? "60";
+var jwtExpiryMinutes = int.TryParse(jwtExpiryMinutesStr, out var minutes) ? minutes : 60;
 
 // Validate JWT secret length (must be at least 32 characters for HS256)
 if (jwtSecret.Length < 32)
