@@ -7,8 +7,8 @@ services:
     env: docker
     region: sgp # Singapore
     plan: free
-    dockerContext: ./backend
-    dockerfilePath: ./backend/Dockerfile
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
@@ -29,8 +29,8 @@ services:
     env: docker
     region: sgp
     plan: free
-    dockerContext: ./frontend
-    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: frontend
+    dockerfilePath: frontend/Dockerfile
     envVars:
       - key: NEXT_PUBLIC_API_URL
         sync: false 
