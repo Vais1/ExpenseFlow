@@ -21,18 +21,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authService } from '@/services/auth';
 
-const registerSchema = z.object({
-    username: z.string().min(3, 'Username must be at least 3 characters'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string().min(1, 'Confirm your password'),
-}).refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
+const loginSchema = z.object({
+    username: z.string().min(1, 'Username is required'),
+    password: z.string().min(1, 'Password is required'),
 });
 
-type RegisterValues = z.infer<typeof registerSchema>;
+type LoginValues = z.infer<typeof loginSchema>;
 
-export default function RegisterPage() {
+export default function AdminLoginPage() {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -41,20 +37,34 @@ export default function RegisterPage() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<RegisterValues>({
-        resolver: zodResolver(registerSchema),
+    } = useForm<LoginValues>({
+        resolver: zodResolver(loginSchema),
     });
 
-    const onSubmit = async (data: RegisterValues) => {
+    const onSubmit = async (data: LoginValues) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            // Role is always User - enforced by backend
-            await authService.register(data.username, data.password);
-            router.push('/dashboard');
+            const session = await authService.login(data.username, data.password);
+
+            // Validate role - only Admin and Management allowed here
+            if (session.user.role === 'User') {
+                setError('This login is for Admin and Manager accounts only. Please use the User login.');
+                authService.logout();
+                return;
+            }
+
+            // Role-based redirect
+            if (session.user.role === 'Admin') {
+                router.push('/dashboard/overview');
+            } else if (session.user.role === 'Management') {
+                router.push('/dashboard/approvals');
+            } else {
+                router.push('/dashboard');
+            }
         } catch (err: unknown) {
-            const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Registration failed. Please try again.';
+            const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Invalid username or password';
             setError(message);
         } finally {
             setIsLoading(false);
@@ -73,9 +83,9 @@ export default function RegisterPage() {
                         priority
                     />
                 </div>
-                <CardTitle className="text-lg font-semibold tracking-tight text-center">Create Account</CardTitle>
+                <CardTitle className="text-lg font-semibold tracking-tight text-center">Admin / Manager Login</CardTitle>
                 <CardDescription className="text-xs text-center">
-                    Register for a new user account
+                    Internal access only - login with your Admin or Manager credentials
                 </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -85,12 +95,11 @@ export default function RegisterPage() {
                             {error}
                         </div>
                     )}
-
                     <div className="space-y-1.5">
                         <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">Username</Label>
                         <Input
                             id="username"
-                            placeholder="Enter your username"
+                            placeholder="Enter your admin username"
                             disabled={isLoading}
                             className="h-8 text-sm"
                             {...register('username')}
@@ -101,13 +110,12 @@ export default function RegisterPage() {
                             </p>
                         )}
                     </div>
-
                     <div className="space-y-1.5">
                         <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">Password</Label>
                         <Input
                             id="password"
                             type="password"
-                            placeholder="Create a password"
+                            placeholder="Enter your password"
                             disabled={isLoading}
                             className="h-8 text-sm"
                             {...register('password')}
@@ -118,36 +126,17 @@ export default function RegisterPage() {
                             </p>
                         )}
                     </div>
-
-                    <div className="space-y-1.5">
-                        <Label htmlFor="confirmPassword" className="text-xs font-medium text-muted-foreground">Confirm Password</Label>
-                        <Input
-                            id="confirmPassword"
-                            type="password"
-                            placeholder="Confirm your password"
-                            disabled={isLoading}
-                            className="h-8 text-sm"
-                            {...register('confirmPassword')}
-                        />
-                        {errors.confirmPassword && (
-                            <p className="text-[10px] text-destructive font-medium">
-                                {errors.confirmPassword.message}
-                            </p>
-                        )}
-                    </div>
-
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-3 pt-4 pb-6">
                     <Button type="submit" className="w-full h-8 text-xs font-medium" disabled={isLoading}>
-                        {isLoading ? 'Creating account...' : 'Create Account'}
+                        {isLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
-                    <div className="text-center text-xs text-muted-foreground">
-                        Already have an account?{' '}
+                    <div className="text-center text-xs text-muted-foreground pt-2 border-t border-slate-100 w-full mt-2">
                         <Link
                             href="/auth/login"
-                            className="underline underline-offset-2 hover:text-primary"
+                            className="text-muted-foreground/70 hover:text-primary"
                         >
-                            Login
+                            ← Back to User Login
                         </Link>
                     </div>
                 </CardFooter>

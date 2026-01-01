@@ -19,6 +19,12 @@ const LoginResponseSchema = z.object({
 
 const RegisterResponseSchema = LoginResponseSchema; // Same structure
 
+const CreateManagerResponseSchema = z.object({
+    success: z.boolean(),
+    message: z.string().optional(),
+    user: UserSchema.optional(),
+});
+
 const MeResponseSchema = z.object({
     userId: z.coerce.string(),
     username: z.string(),
@@ -51,14 +57,16 @@ export const authService = {
         return session;
     },
 
-    async register(username: string, password: string, role: string): Promise<AuthSession> {
+    /**
+     * Register a new User account (role is always User - enforced by backend)
+     */
+    async register(username: string, password: string): Promise<AuthSession> {
         const response = await api.post('auth/register', {
             username,
             password,
-            confirmPassword: password, // Auto-confirm since UI might not have field yet, or we assume match
-            role: role === 'Admin' ? 2 : role === 'Management' ? 1 : 0 // Map string role to enum integer
+            confirmPassword: password,
+            // No role - backend enforces User role
         });
-
 
         const parsed = RegisterResponseSchema.parse(response.data);
 
@@ -69,6 +77,18 @@ export const authService = {
 
         this.persistSession(session);
         return session;
+    },
+
+    /**
+     * Admin-only: Create a Manager account
+     */
+    async createManager(username: string, password: string): Promise<{ success: boolean; message?: string; user?: User }> {
+        const response = await api.post('auth/create-manager', {
+            username,
+            password,
+        });
+
+        return CreateManagerResponseSchema.parse(response.data);
     },
 
     async refreshSession(): Promise<AuthSession | null> {

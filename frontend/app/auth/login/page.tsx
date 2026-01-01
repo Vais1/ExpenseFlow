@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -47,9 +48,9 @@ export default function LoginPage() {
         try {
             await authService.login(data.username, data.password);
             router.push('/dashboard');
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Safe error extraction from Axios
-            const message = err.response?.data?.message || 'Invalid username or password';
+            const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Invalid username or password';
             setError(message);
         } finally {
             setIsLoading(false);
@@ -59,8 +60,17 @@ export default function LoginPage() {
     return (
         <Card className="w-full shadow-sm border-slate-200">
             <CardHeader className="space-y-1 pb-6">
-                <CardTitle className="text-lg font-semibold tracking-tight">Login</CardTitle>
-                <CardDescription className="text-xs">
+                <div className="flex justify-center mb-4">
+                    <Image
+                        src="/logo.svg"
+                        alt="VendorPay Logo"
+                        width={48}
+                        height={48}
+                        priority
+                    />
+                </div>
+                <CardTitle className="text-lg font-semibold tracking-tight text-center">User Login</CardTitle>
+                <CardDescription className="text-xs text-center">
                     Enter your credentials to access your account
                 </CardDescription>
             </CardHeader>
@@ -75,7 +85,7 @@ export default function LoginPage() {
                         <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">Username</Label>
                         <Input
                             id="username"
-                            placeholder="admin, manager, or user"
+                            placeholder="Enter your username"
                             disabled={isLoading}
                             className="h-8 text-sm"
                             {...register('username')}
@@ -91,6 +101,7 @@ export default function LoginPage() {
                         <Input
                             id="password"
                             type="password"
+                            placeholder="Enter your password"
                             disabled={isLoading}
                             className="h-8 text-sm"
                             {...register('password')}
@@ -113,6 +124,14 @@ export default function LoginPage() {
                             className="underline underline-offset-2 hover:text-primary"
                         >
                             Register
+                        </Link>
+                    </div>
+                    <div className="text-center text-xs text-muted-foreground pt-2 border-t border-slate-100 w-full mt-2">
+                        <Link
+                            href="/auth/admin"
+                            className="text-muted-foreground/70 hover:text-primary"
+                        >
+                            Admin / Manager Login →
                         </Link>
                     </div>
                 </CardFooter>

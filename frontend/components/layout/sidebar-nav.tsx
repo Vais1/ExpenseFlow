@@ -11,6 +11,7 @@ import {
     History,
     Users,
     Files,
+    UserPlus,
 } from 'lucide-react';
 import { UserRole } from '@/services/auth';
 
@@ -34,6 +35,7 @@ const ROLE_LINKS: Record<UserRole | 'Default', SidebarLink[]> = {
         { href: '/dashboard/overview', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/dashboard/vendors', label: 'Vendor Management', icon: Users },
         { href: '/dashboard/invoices', label: 'All Invoices', icon: Files },
+        { href: '/dashboard/users', label: 'User Management', icon: UserPlus },
     ],
     Default: [],
 };
