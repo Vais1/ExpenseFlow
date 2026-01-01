@@ -8,10 +8,7 @@ if (!apiUrl.endsWith('/api')) {
 }
 const API_URL = `${apiUrl}/`; // Ensure trailing slash for Axios baseURL
 
-console.log('🌐 API Config:', {
-    envVar: process.env.NEXT_PUBLIC_API_URL,
-    resolvedUrl: API_URL
-});
+
 
 export const api = axios.create({
     baseURL: API_URL,
