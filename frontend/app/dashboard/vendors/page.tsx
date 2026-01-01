@@ -43,7 +43,10 @@ export default function VendorManagementPage() {
     const { mutate: deleteVendor, isPending: isDeleting } = useDeleteVendor();
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [isAuthorized] = useState(() => {
+        const session = authService.getSession();
+        return !!(session && session.user.role === 'Admin');
+    });
     const [formDialogOpen, setFormDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editingVendor, setEditingVendor] = useState<{ id: number; name: string; category: string; status: VendorStatus } | null>(null);
@@ -51,13 +54,10 @@ export default function VendorManagementPage() {
     const [formData, setFormData] = useState<VendorFormData>({ name: '', category: '' });
 
     useEffect(() => {
-        const session = authService.getSession();
-        if (!session || session.user.role !== 'Admin') {
+        if (!isAuthorized) {
             router.push('/dashboard');
-        } else {
-            setIsAuthorized(true);
         }
-    }, [router]);
+    }, [isAuthorized, router]);
 
     const filteredVendors = vendors?.filter((vendor) =>
         vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

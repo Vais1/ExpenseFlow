@@ -11,13 +11,8 @@ import { useRouter } from 'next/navigation';
 
 export function MobileSidebar() {
     const [open, setOpen] = useState(false);
-    const [session, setSession] = useState<AuthSession | null>(null);
+    const [session] = useState<AuthSession | null>(() => authService.getSession());
     const router = useRouter();
-
-    useEffect(() => {
-        const currentSession = authService.getSession();
-        setSession(currentSession);
-    }, []);
 
     const handleLogout = () => {
         authService.logout();

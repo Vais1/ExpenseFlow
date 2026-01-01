@@ -11,21 +11,11 @@ const ThemeSwitch = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => {
   const { resolvedTheme, setTheme } = useTheme();
-  const [checked, setChecked] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
-  useEffect(() => setChecked(resolvedTheme === "dark"), [resolvedTheme]);
 
-  const handleCheckedChange = useCallback(
-    (isChecked: boolean) => {
-      setChecked(isChecked);
-      setTheme(isChecked ? "dark" : "light");
-    },
-    [setTheme],
-  );
-
-  if (!mounted) return null;
+  if (!mounted) return <div className="w-9 h-9" />; // Prevent layout shift with placeholder
 
   return (
     <div
@@ -38,8 +28,8 @@ const ThemeSwitch = ({
     >
       {/* The real shadcn Switch (full-size, same structure) */}
       <Switch
-        checked={checked}
-        onCheckedChange={handleCheckedChange}
+        checked={resolvedTheme === "dark"}
+        onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
         className={cn(
           // root (track)
           "peer absolute inset-0 h-full w-full rounded-full bg-input/50 transition-colors",
@@ -63,7 +53,7 @@ const ThemeSwitch = ({
           size={16}
           className={cn(
             "transition-all duration-200 ease-out",
-            checked ? "text-muted-foreground/70" : "text-foreground scale-110"
+            resolvedTheme === "dark" ? "text-muted-foreground/70" : "text-foreground scale-110"
           )}
         />
       </span>
@@ -78,7 +68,7 @@ const ThemeSwitch = ({
           size={16}
           className={cn(
             "transition-all duration-200 ease-out",
-            checked ? "text-foreground scale-110" : "text-muted-foreground/70"
+            resolvedTheme === "dark" ? "text-foreground scale-110" : "text-muted-foreground/70"
           )}
         />
       </span>

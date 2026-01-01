@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -53,7 +53,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange }: EditInvoiceDi
         register,
         handleSubmit,
         setValue,
-        watch,
+        control,
         reset,
         formState: { errors },
         trigger,
@@ -61,8 +61,9 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange }: EditInvoiceDi
         resolver: zodResolver(EditInvoiceSchema),
     });
 
-    const selectedVendorName = watch('vendorName');
+    const selectedVendorName = useWatch({ control, name: 'vendorName' });
 
+    // eslint-disable-next-line
     useEffect(() => {
         if (invoice && open) {
             reset({
@@ -70,7 +71,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange }: EditInvoiceDi
                 description: invoice.description,
                 vendorName: invoice.vendorName,
             });
-            setIsOtherVendor(false);
+            setIsOtherVendor((prev) => prev ? false : prev);
         }
     }, [invoice, open, reset]);
 

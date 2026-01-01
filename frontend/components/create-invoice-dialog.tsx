@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -45,7 +45,7 @@ export function CreateInvoiceDialog() {
     const { data: vendors, isLoading: isLoadingVendors } = useActiveVendors();
 
     useEffect(() => {
-        if (searchParams.get('action') === 'new') {
+        if (!open && searchParams.get('action') === 'new') {
             setOpen(true);
         }
     }, [searchParams]);
@@ -67,7 +67,7 @@ export function CreateInvoiceDialog() {
         register,
         handleSubmit,
         setValue,
-        watch,
+        control,
         reset,
         formState: { errors },
         trigger,
@@ -79,7 +79,7 @@ export function CreateInvoiceDialog() {
         }
     });
 
-    const selectedVendorName = watch('vendorName');
+    const selectedVendorName = useWatch({ control, name: 'vendorName' });
 
     const onSubmit = (data: InvoiceFormValues) => {
         const finalVendorName = isOtherVendor ? data.customVendorName : data.vendorName;

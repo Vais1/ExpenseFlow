@@ -215,7 +215,14 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection(); // Disabled in dev to avoid 'Failed to determine the https port' warning when running on HTTP only
 
 // Enable CORS
-app.UseCors("AllowAll"); // Use "Production" policy in production
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("AllowAll");
+}
+else
+{
+    app.UseCors("Production");
+}
 
 // Authentication & Authorization
 app.UseAuthentication();

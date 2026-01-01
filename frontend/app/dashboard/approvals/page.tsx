@@ -39,6 +39,17 @@ import { Invoice } from '@/lib/types';
 type SortField = 'createdAt' | 'amount' | 'vendor' | 'user' | 'status';
 type SortOrder = 'asc' | 'desc';
 
+
+
+function SortIcon({ field, sortField, sortOrder }: { field: SortField; sortField: SortField; sortOrder: SortOrder }) {
+    if (sortField !== field) return null;
+    return sortOrder === 'asc' ? (
+        <ChevronUp className="h-3 w-3 ml-1 inline" />
+    ) : (
+        <ChevronDown className="h-3 w-3 ml-1 inline" />
+    );
+}
+
 export default function ApprovalsPage() {
     const router = useRouter();
     const [isAuthorized, setIsAuthorized] = useState(false);
@@ -165,14 +176,7 @@ export default function ApprovalsPage() {
         setDrawerOpen(true);
     };
 
-    const SortIcon = ({ field }: { field: SortField }) => {
-        if (sortField !== field) return null;
-        return sortOrder === 'asc' ? (
-            <ChevronUp className="h-3 w-3 ml-1 inline" />
-        ) : (
-            <ChevronDown className="h-3 w-3 ml-1 inline" />
-        );
-    };
+    // SortIcon moved outside
 
     if (!isAuthorized) return null;
 
@@ -264,25 +268,25 @@ export default function ApprovalsPage() {
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('user')}
                                 >
-                                    Employee <SortIcon field="user" />
+                                    Employee <SortIcon field="user" sortField={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                                 <TableHead
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('vendor')}
                                 >
-                                    Vendor <SortIcon field="vendor" />
+                                    Vendor <SortIcon field="vendor" sortField={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                                 <TableHead
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('amount')}
                                 >
-                                    Amount <SortIcon field="amount" />
+                                    Amount <SortIcon field="amount" sortField={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                                 <TableHead
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('status')}
                                 >
-                                    Status <SortIcon field="status" />
+                                    Status <SortIcon field="status" sortField={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                                 <TableHead className="h-9 text-xs font-semibold text-right">Actions</TableHead>
                             </TableRow>

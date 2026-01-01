@@ -34,6 +34,15 @@ import { format } from 'date-fns';
 type SortField = 'createdAt' | 'amount' | 'vendor' | 'user' | 'status';
 type SortOrder = 'asc' | 'desc';
 
+const SortIcon = ({ field, currentSort, sortOrder }: { field: SortField; currentSort: SortField; sortOrder: SortOrder }) => {
+    if (currentSort !== field) return null;
+    return sortOrder === 'asc' ? (
+        <ChevronUp className="h-3 w-3 ml-1 inline" />
+    ) : (
+        <ChevronDown className="h-3 w-3 ml-1 inline" />
+    );
+};
+
 export default function HistoryPage() {
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [sortField, setSortField] = useState<SortField>('createdAt');
@@ -74,14 +83,7 @@ export default function HistoryPage() {
         setDrawerOpen(true);
     };
 
-    const SortIcon = ({ field }: { field: SortField }) => {
-        if (sortField !== field) return null;
-        return sortOrder === 'asc' ? (
-            <ChevronUp className="h-3 w-3 ml-1 inline" />
-        ) : (
-            <ChevronDown className="h-3 w-3 ml-1 inline" />
-        );
-    };
+
 
     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
         const badge = (
@@ -167,31 +169,31 @@ export default function HistoryPage() {
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('user')}
                                 >
-                                    User <SortIcon field="user" />
+                                    User <SortIcon field="user" currentSort={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                                 <TableHead
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('vendor')}
                                 >
-                                    Vendor <SortIcon field="vendor" />
+                                    Vendor <SortIcon field="vendor" currentSort={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                                 <TableHead
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('createdAt')}
                                 >
-                                    Date <SortIcon field="createdAt" />
+                                    Date <SortIcon field="createdAt" currentSort={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                                 <TableHead
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('amount')}
                                 >
-                                    Amount <SortIcon field="amount" />
+                                    Amount <SortIcon field="amount" currentSort={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                                 <TableHead
                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
                                     onClick={() => handleSort('status')}
                                 >
-                                    Status <SortIcon field="status" />
+                                    Status <SortIcon field="status" currentSort={sortField} sortOrder={sortOrder} />
                                 </TableHead>
                             </TableRow>
                         </TableHeader>

@@ -1,0 +1,655 @@
+﻿
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\approvals\page.tsx
+  37:10  warning  'Invoice' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  95:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\approvals\page.tsx:95:13
+  93 |             router.push('/dashboard');
+  94 |         } else {
+> 95 |             setIsAuthorized(true);
+     |             ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  96 |         }
+  97 |     }, [router]);
+  98 |  react-hooks/set-state-in-effect
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx
+  170:43  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:170:43
+  168 |                                     onClick={() => handleSort('user')}
+  169 |                                 >
+> 170 |                                     User <SortIcon field="user" />
+      |                                           ^^^^^^^^ This component is created during render
+  171 |                                 </TableHead>
+  172 |                                 <TableHead
+  173 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (            react-hooks/static-components
+  176:45  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:176:45
+  174 |                                     onClick={() => handleSort('vendor')}
+  175 |                                 >
+> 176 |                                     Vendor <SortIcon field="vendor" />
+      |                                             ^^^^^^^^ This component is created during render
+  177 |                                 </TableHead>
+  178 |                                 <TableHead
+  179 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (    react-hooks/static-components
+  182:43  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:182:43
+  180 |                                     onClick={() => handleSort('createdAt')}
+  181 |                                 >
+> 182 |                                     Date <SortIcon field="createdAt" />
+      |                                           ^^^^^^^^ This component is created during render
+  183 |                                 </TableHead>
+  184 |                                 <TableHead
+  185 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (  react-hooks/static-components
+  188:45  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:188:45
+  186 |                                     onClick={() => handleSort('amount')}
+  187 |                                 >
+> 188 |                                     Amount <SortIcon field="amount" />
+      |                                             ^^^^^^^^ This component is created during render
+  189 |                                 </TableHead>
+  190 |                                 <TableHead
+  191 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (    react-hooks/static-components
+  194:45  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:194:45
+  192 |                                     onClick={() => handleSort('status')}
+  193 |                                 >
+> 194 |                                     Status <SortIcon field="status" />
+      |                                             ^^^^^^^^ This component is created during render
+  195 |                                 </TableHead>
+  196 |                             </TableRow>
+  197 |                         </TableHeader>
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\history\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (                                                                     react-hooks/static-components
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx
+  170:43  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:170:43
+  168 |                                     onClick={() => handleSort('user')}
+  169 |                                 >
+> 170 |                                     User <SortIcon field="user" />
+      |                                           ^^^^^^^^ This component is created during render
+  171 |                                 </TableHead>
+  172 |                                 <TableHead
+  173 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (            react-hooks/static-components
+  176:45  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:176:45
+  174 |                                     onClick={() => handleSort('vendor')}
+  175 |                                 >
+> 176 |                                     Vendor <SortIcon field="vendor" />
+      |                                             ^^^^^^^^ This component is created during render
+  177 |                                 </TableHead>
+  178 |                                 <TableHead
+  179 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (    react-hooks/static-components
+  182:43  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:182:43
+  180 |                                     onClick={() => handleSort('createdAt')}
+  181 |                                 >
+> 182 |                                     Date <SortIcon field="createdAt" />
+      |                                           ^^^^^^^^ This component is created during render
+  183 |                                 </TableHead>
+  184 |                                 <TableHead
+  185 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (  react-hooks/static-components
+  188:45  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:188:45
+  186 |                                     onClick={() => handleSort('amount')}
+  187 |                                 >
+> 188 |                                     Amount <SortIcon field="amount" />
+      |                                             ^^^^^^^^ This component is created during render
+  189 |                                 </TableHead>
+  190 |                                 <TableHead
+  191 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (    react-hooks/static-components
+  194:45  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:194:45
+  192 |                                     onClick={() => handleSort('status')}
+  193 |                                 >
+> 194 |                                     Status <SortIcon field="status" />
+      |                                             ^^^^^^^^ This component is created during render
+  195 |                                 </TableHead>
+  196 |                             </TableRow>
+  197 |                         </TableHeader>
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\invoices\page.tsx:77:22
+  75 |     };
+  76 |
+> 77 |     const SortIcon = ({ field }: { field: SortField }) => {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 78 |         if (sortField !== field) return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 79 |         return sortOrder === 'asc' ? (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 80 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 81 |         ) : (
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 82 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 83 |         );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 84 |     };
+     | ^^^^^^ The component is created during render here
+  85 |
+  86 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  87 |         const badge = (                                                                     react-hooks/static-components
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx
+    4:80   warning  'Copy' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+    4:125  warning  'DollarSign' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   56:12   warning  'duplicateInvoice' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   56:30   warning  'setDuplicateInvoice' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   57:12   warning  'createDialogOpen' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   57:30   warning  'setCreateDialogOpen' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  272:45   error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx:272:45
+  270 |                                     onClick={() => handleSort('vendor')}
+  271 |                                 >
+> 272 |                                     Vendor <SortIcon field="vendor" />
+      |                                             ^^^^^^^^ This component is created during render
+  273 |                                 </TableHead>
+  274 |                                 <TableHead
+  275 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx:121:22
+  119 |     };
+  120 |
+> 121 |     const SortIcon = ({ field }: { field: SortField }) => {
+      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 122 |         if (sortField !== field) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 123 |         return sortOrder === 'asc' ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 124 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 125 |         ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 126 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 127 |         );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 128 |     };
+      | ^^^^^^ The component is created during render here
+  129 |
+  130 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  131 |         const statusStyles: Record<string, string> = {          react-hooks/static-components
+  278:43   error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx:278:43
+  276 |                                     onClick={() => handleSort('createdAt')}
+  277 |                                 >
+> 278 |                                     Date <SortIcon field="createdAt" />
+      |                                           ^^^^^^^^ This component is created during render
+  279 |                                 </TableHead>
+  280 |                                 <TableHead
+  281 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx:121:22
+  119 |     };
+  120 |
+> 121 |     const SortIcon = ({ field }: { field: SortField }) => {
+      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 122 |         if (sortField !== field) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 123 |         return sortOrder === 'asc' ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 124 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 125 |         ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 126 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 127 |         );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 128 |     };
+      | ^^^^^^ The component is created during render here
+  129 |
+  130 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  131 |         const statusStyles: Record<string, string> = {        react-hooks/static-components
+  284:45   error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx:284:45
+  282 |                                     onClick={() => handleSort('amount')}
+  283 |                                 >
+> 284 |                                     Amount <SortIcon field="amount" />
+      |                                             ^^^^^^^^ This component is created during render
+  285 |                                 </TableHead>
+  286 |                                 <TableHead
+  287 |                                     className="h-9 text-xs font-semibold cursor-pointer select-none"
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx:121:22
+  119 |     };
+  120 |
+> 121 |     const SortIcon = ({ field }: { field: SortField }) => {
+      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 122 |         if (sortField !== field) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 123 |         return sortOrder === 'asc' ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 124 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 125 |         ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 126 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 127 |         );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 128 |     };
+      | ^^^^^^ The component is created during render here
+  129 |
+  130 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  131 |         const statusStyles: Record<string, string> = {          react-hooks/static-components
+  290:45   error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx:290:45
+  288 |                                     onClick={() => handleSort('status')}
+  289 |                                 >
+> 290 |                                     Status <SortIcon field="status" />
+      |                                             ^^^^^^^^ This component is created during render
+  291 |                                 </TableHead>
+  292 |                                 <TableHead className="h-9 text-xs font-semibold text-right">Actions</TableHead>
+  293 |                             </TableRow>
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\my-requests\page.tsx:121:22
+  119 |     };
+  120 |
+> 121 |     const SortIcon = ({ field }: { field: SortField }) => {
+      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 122 |         if (sortField !== field) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 123 |         return sortOrder === 'asc' ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 124 |             <ChevronUp className="h-3 w-3 ml-1 inline" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 125 |         ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 126 |             <ChevronDown className="h-3 w-3 ml-1 inline" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 127 |         );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 128 |     };
+      | ^^^^^^ The component is created during render here
+  129 |
+  130 |     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+  131 |         const statusStyles: Record<string, string> = {  react-hooks/static-components
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\vendors\page.tsx
+  58:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\app\dashboard\vendors\page.tsx:58:13
+  56 |             router.push('/dashboard');
+  57 |         } else {
+> 58 |             setIsAuthorized(true);
+     |             ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  59 |         }
+  60 |     }, [router]);
+  61 |  react-hooks/set-state-in-effect
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\create-invoice-dialog.tsx
+  82:32  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\create-invoice-dialog.tsx:82:32
+  80 |     });
+  81 |
+> 82 |     const selectedVendorName = watch('vendorName');
+     |                                ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  83 |
+  84 |     const onSubmit = (data: InvoiceFormValues) => {
+  85 |         const finalVendorName = isOtherVendor ? data.customVendorName : data.vendorName;  react-hooks/incompatible-library
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\edit-invoice-dialog.tsx
+  64:32  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\edit-invoice-dialog.tsx:64:32
+  62 |     });
+  63 |
+> 64 |     const selectedVendorName = watch('vendorName');
+     |                                ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  65 |
+  66 |     useEffect(() => {
+  67 |         if (invoice && open) {  react-hooks/incompatible-library
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\invoice-detail-drawer.tsx
+   14:5   warning  'Loader2' is defined but never used          @typescript-eslint/no-unused-vars
+   16:5   warning  'ArrowLeftCircle' is defined but never used  @typescript-eslint/no-unused-vars
+  204:68  warning  'index' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\layout\mobile-sidebar.tsx
+  19:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\layout\mobile-sidebar.tsx:19:9
+  17 |     useEffect(() => {
+  18 |         const currentSession = authService.getSession();
+> 19 |         setSession(currentSession);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |     }, []);
+  21 |
+  22 |     const handleLogout = () => {  react-hooks/set-state-in-effect
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\layout\sidebar-nav.tsx
+   9:5  warning  'PlusCircle' is defined but never used  @typescript-eslint/no-unused-vars
+  14:5  warning  'UserPlus' is defined but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\layout\sidebar.tsx
+   7:10  warning  'ThemeToggle' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  14:5   warning  'User' is defined but never used                                                                @typescript-eslint/no-unused-vars
+  32:10  warning  'Avatar' is defined but never used                                                              @typescript-eslint/no-unused-vars
+  32:18  warning  'AvatarFallback' is defined but never used                                                      @typescript-eslint/no-unused-vars
+  32:34  warning  'AvatarImage' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  46:13  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\theme-switch.tsx
+   6:10  warning  'useCallback' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  16:19  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\theme-switch.tsx:16:19
+  14 |   const [mounted, setMounted] = useState(false);
+  15 |
+> 16 |   useEffect(() => setMounted(true), []);
+     |                   ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  17 |
+  18 |   if (!mounted) return <div className="w-9 h-9" />; // Prevent layout shift with placeholder
+  19 |  react-hooks/set-state-in-effect
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\theme-toggle.tsx
+  20:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\theme-toggle.tsx:20:9
+  18 |     // Prevent hydration mismatch
+  19 |     useEffect(() => {
+> 20 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  21 |     }, []);
+  22 |
+  23 |     if (!mounted) {  react-hooks/set-state-in-effect
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\components\ui\spinner.tsx
+  7:155  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\hooks\use-invoices.ts
+  3:91  warning  'InvoiceActivity' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\lib\api.ts
+  37:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\awasm\OneDrive\Documents\ExpenseFlow\frontend\services\auth.ts
+  118:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 44 problems (20 errors, 24 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

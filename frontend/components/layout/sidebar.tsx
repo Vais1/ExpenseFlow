@@ -43,6 +43,7 @@ export function Sidebar() {
         if (!currentSession) {
             router.push('/auth/login');
         } else {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
             setSession(currentSession);
         }
         setLoading(false);
