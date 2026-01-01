@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VendorPay.Data;
@@ -11,9 +12,11 @@ using VendorPay.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251231094309_AddPhase1EnterpriseFeatures")]
+    partial class AddPhase1EnterpriseFeatures
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,54 +77,6 @@ namespace backend.Migrations
                     b.ToTable("Invoices", (string)null);
                 });
 
-            modelBuilder.Entity("VendorPay.Models.InvoiceActivity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("InvoiceId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Metadata")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<int>("PerformedById")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("PerformedByRole")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<string>("PerformedByUsername")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InvoiceId");
-
-                    b.HasIndex("PerformedById");
-
-                    b.HasIndex("Timestamp");
-
-                    b.ToTable("InvoiceActivities", (string)null);
-                });
-
             modelBuilder.Entity("VendorPay.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -164,10 +119,10 @@ namespace backend.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 12, 31, 10, 36, 10, 418, DateTimeKind.Utc).AddTicks(900),
+                            CreatedAt = new DateTime(2025, 12, 31, 9, 43, 9, 42, DateTimeKind.Utc).AddTicks(3955),
                             PasswordHash = "$2a$11$8YGY9YGY9YGY9YGY9YGY9eDummy",
                             Role = "Admin",
-                            UpdatedAt = new DateTime(2025, 12, 31, 10, 36, 10, 418, DateTimeKind.Utc).AddTicks(901),
+                            UpdatedAt = new DateTime(2025, 12, 31, 9, 43, 9, 42, DateTimeKind.Utc).AddTicks(3956),
                             Username = "admin"
                         });
                 });
@@ -228,25 +183,6 @@ namespace backend.Migrations
                     b.Navigation("User");
 
                     b.Navigation("Vendor");
-                });
-
-            modelBuilder.Entity("VendorPay.Models.InvoiceActivity", b =>
-                {
-                    b.HasOne("VendorPay.Models.Invoice", "Invoice")
-                        .WithMany()
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VendorPay.Models.User", "PerformedBy")
-                        .WithMany()
-                        .HasForeignKey("PerformedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Invoice");
-
-                    b.Navigation("PerformedBy");
                 });
 
             modelBuilder.Entity("VendorPay.Models.User", b =>

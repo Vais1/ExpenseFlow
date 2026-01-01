@@ -3,6 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VendorPay.Models;
 
+public enum VendorStatus
+{
+    Active = 0,
+    Inactive = 1
+}
+
 public class Vendor
 {
     [Key]
@@ -16,6 +22,10 @@ public class Vendor
     [Required(ErrorMessage = "Category is required")]
     [StringLength(50, ErrorMessage = "Category cannot exceed 50 characters")]
     public string Category { get; set; } = string.Empty;
+
+    public VendorStatus Status { get; set; } = VendorStatus.Active;
+
+    public bool IsDeleted { get; set; } = false;
 
     // Navigation property
     public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();

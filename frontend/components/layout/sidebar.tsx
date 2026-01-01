@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService, AuthSession } from '@/services/auth';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 import {
     LogOut,
@@ -79,7 +80,7 @@ export function Sidebar() {
 
             {/* Footer */}
             <div className="p-3 border-t bg-muted/20">
-                <div className={cn("flex items-center gap-3", isCollapsed && "justify-center flex-col gap-4")}>
+                <div className={cn("flex items-center gap-2", isCollapsed && "justify-center flex-col gap-3")}>
                     {!isCollapsed && (
                         <div className="flex flex-col overflow-hidden min-w-0 flex-1">
                             <span className="text-sm font-medium leading-none truncate">{session.user.username}</span>
@@ -87,21 +88,22 @@ export function Sidebar() {
                         </div>
                     )}
 
-                    <Button
-                        variant="ghost"
-                        size={isCollapsed ? "icon" : "sm"}
-                        className={cn(
-                            "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-                            !isCollapsed && "ml-auto"
-                        )}
-                        onClick={handleLogout}
-                        title="Log Out"
-                    >
-                        <LogOut className="h-4 w-4" />
-                        {!isCollapsed && <span className="sr-only">Log Out</span>}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <ThemeToggle />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            onClick={handleLogout}
+                            title="Log Out"
+                        >
+                            <LogOut className="h-4 w-4" />
+                            <span className="sr-only">Log Out</span>
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
+

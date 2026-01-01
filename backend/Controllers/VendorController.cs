@@ -24,11 +24,11 @@ public class VendorController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<VendorReadDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllVendors()
+    public async Task<IActionResult> GetAllVendors([FromQuery] bool activeOnly = false)
     {
         try
         {
-            var vendors = await _vendorService.GetAllVendorsAsync();
+            var vendors = await _vendorService.GetAllVendorsAsync(activeOnly);
             return Ok(vendors);
         }
         catch (Exception ex)

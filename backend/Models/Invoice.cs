@@ -24,6 +24,11 @@ public class Invoice
     [Required(ErrorMessage = "Status is required")]
     public InvoiceStatus Status { get; set; } = InvoiceStatus.Pending;
 
+    [StringLength(500, ErrorMessage = "Rejection reason cannot exceed 500 characters")]
+    public string? RejectionReason { get; set; }
+
+    public bool IsDeleted { get; set; } = false;
+
     [Required(ErrorMessage = "Description is required")]
     [StringLength(500, MinimumLength = 5, ErrorMessage = "Description must be between 5 and 500 characters")]
     public string Description { get; set; } = string.Empty;

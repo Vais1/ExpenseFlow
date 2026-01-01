@@ -24,6 +24,9 @@ public class InvoiceUpdateStatusDto
 {
     [Required(ErrorMessage = "Status is required")]
     public InvoiceStatus Status { get; set; }
+
+    [StringLength(500, ErrorMessage = "Rejection reason cannot exceed 500 characters")]
+    public string? RejectionReason { get; set; }
 }
 
 public class InvoiceReadDto
@@ -32,6 +35,7 @@ public class InvoiceReadDto
     public decimal Amount { get; set; }
     public string Status { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? RejectionReason { get; set; }
     
     // Foreign Key References
     public int VendorId { get; set; }
@@ -46,3 +50,4 @@ public class InvoiceReadDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
+

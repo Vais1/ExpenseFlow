@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { z } from 'zod';
@@ -27,18 +27,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { InvoiceCreateSchema } from '@/lib/types'; // We updated this schema in the previous step
+import { InvoiceCreateSchema } from '@/lib/types';
 import { useCreateInvoice } from '@/hooks/use-invoices';
+import { useActiveVendors } from '@/hooks/use-vendors';
 
-// Hardcoded list as requested to replace backend fetch for the dropdown options
-const VENDOR_OPTIONS = [
-    "Office Depot",
-    "Tech Supplies Inc",
-    "Cleaning Services Co",
-    "Catering Experts"
-];
-
-// Helper type extending the DTO to include our frontend-only field
 type InvoiceFormValues = z.infer<typeof InvoiceCreateSchema>;
 
 export function CreateInvoiceDialog() {
@@ -50,8 +42,8 @@ export function CreateInvoiceDialog() {
     const pathname = usePathname();
 
     const { mutate: createInvoice, isPending } = useCreateInvoice();
+    const { data: vendors, isLoading: isLoadingVendors } = useActiveVendors();
 
-    // Auto-open if query param exists
     useEffect(() => {
         if (searchParams.get('action') === 'new') {
             setOpen(true);
@@ -90,9 +82,6 @@ export function CreateInvoiceDialog() {
     const selectedVendorName = watch('vendorName');
 
     const onSubmit = (data: InvoiceFormValues) => {
-        // Decide which name to send
-        // If "Other" was active, we prefer customVendorName
-        // Otherwise we use the selected vendorName
         const finalVendorName = isOtherVendor ? data.customVendorName : data.vendorName;
 
         if (!finalVendorName) {
@@ -104,7 +93,6 @@ export function CreateInvoiceDialog() {
             amount: data.amount,
             description: data.description,
             vendorName: finalVendorName,
-            // We do NOT send vendorId anymore, allowing backend to lookup/create by name
         }, {
             onSuccess: () => {
                 toast.success('Invoice created successfully');
@@ -125,10 +113,10 @@ export function CreateInvoiceDialog() {
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[400px] p-0 gap-0 overflow-hidden">
-                <DialogHeader className="p-4 bg-slate-50/50 border-b space-y-1">
+                <DialogHeader className="p-4 bg-slate-50/50 border-b space-y-1 dark:bg-slate-900/50">
                     <DialogTitle className="text-sm font-semibold">New Invoice Request</DialogTitle>
                     <DialogDescription className="text-xs">
-                        Submit a new invoice for approval. Click submit when you&apos;re done.
+                        Submit a new invoice for approval. Only active vendors are available.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -139,28 +127,42 @@ export function CreateInvoiceDialog() {
                             </Label>
                             <div className="col-span-3 space-y-2">
                                 <Select
+                                    disabled={isLoadingVendors}
                                     onValueChange={(value) => {
                                         if (value === "other") {
                                             setIsOtherVendor(true);
-                                            setValue('vendorName', ''); // clear main selection
+                                            setValue('vendorName', '');
                                         } else {
                                             setIsOtherVendor(false);
                                             setValue('vendorName', value);
-                                            setValue('customVendorName', undefined); // clear custom
+                                            setValue('customVendorName', undefined);
                                         }
                                         trigger('vendorName');
                                     }}
                                     value={isOtherVendor ? "other" : selectedVendorName || ""}
                                 >
                                     <SelectTrigger id="vendor" className="h-8 text-xs">
-                                        <SelectValue placeholder="Select vendor" />
+                                        {isLoadingVendors ? (
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                <span>Loading...</span>
+                                            </div>
+                                        ) : (
+                                            <SelectValue placeholder="Select vendor" />
+                                        )}
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {VENDOR_OPTIONS.map((vendor) => (
-                                            <SelectItem key={vendor} value={vendor} className="text-xs">
-                                                {vendor}
+                                        {vendors && vendors.length > 0 ? (
+                                            vendors.map((vendor) => (
+                                                <SelectItem key={vendor.id} value={vendor.name} className="text-xs">
+                                                    {vendor.name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="__empty__" disabled className="text-xs text-muted-foreground">
+                                                No active vendors
                                             </SelectItem>
-                                        ))}
+                                        )}
                                         <SelectItem value="other" className="text-xs font-medium text-primary">
                                             Other...
                                         </SelectItem>
@@ -224,7 +226,7 @@ export function CreateInvoiceDialog() {
                             </div>
                         </div>
                     </div>
-                    <DialogFooter className="p-3 bg-slate-50/50 border-t">
+                    <DialogFooter className="p-3 bg-slate-50/50 border-t dark:bg-slate-900/50">
                         <Button type="submit" size="sm" className="h-8 text-xs w-full sm:w-auto" disabled={isPending}>
                             {isPending ? 'Submitting...' : 'Submit Request'}
                         </Button>

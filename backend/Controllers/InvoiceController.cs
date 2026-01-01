@@ -2,37 +2,59 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VendorPay.DTOs;
+using VendorPay.Models;
 using VendorPay.Services;
 
 namespace VendorPay.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // All endpoints require authentication
+[Authorize]
 public class InvoiceController : ControllerBase
 {
     private readonly IInvoiceService _invoiceService;
+    private readonly IInvoiceActivityService _activityService;
     private readonly ILogger<InvoiceController> _logger;
 
-    public InvoiceController(IInvoiceService invoiceService, ILogger<InvoiceController> logger)
+    public InvoiceController(
+        IInvoiceService invoiceService, 
+        IInvoiceActivityService activityService,
+        ILogger<InvoiceController> logger)
     {
         _invoiceService = invoiceService;
+        _activityService = activityService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Get all invoices (filtered by role: User sees own, Management/Admin see all)
+    /// Get all invoices with optional filtering and search
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<InvoiceReadDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllInvoices()
+    public async Task<IActionResult> GetAllInvoices(
+        [FromQuery] int? status = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortOrder = null,
+        [FromQuery] string? search = null,
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null)
     {
         try
         {
             var currentUserId = GetCurrentUserId();
             var currentUserRole = GetCurrentUserRole();
 
-            var invoices = await _invoiceService.GetInvoicesAsync(currentUserId, currentUserRole);
+            InvoiceStatus? statusEnum = status.HasValue ? (InvoiceStatus)status.Value : null;
+
+            var invoices = await _invoiceService.GetInvoicesAsync(
+                currentUserId, 
+                currentUserRole, 
+                statusEnum, 
+                sortBy, 
+                sortOrder,
+                search,
+                fromDate,
+                toDate);
             return Ok(invoices);
         }
         catch (Exception ex)
@@ -46,7 +68,7 @@ public class InvoiceController : ControllerBase
     }
 
     /// <summary>
-    /// Get invoice by ID (role-based access control applied)
+    /// Get invoice by ID
     /// </summary>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(InvoiceReadDto), StatusCodes.Status200OK)]
@@ -62,7 +84,6 @@ public class InvoiceController : ControllerBase
             var invoice = await _invoiceService.GetInvoiceByIdAsync(id, currentUserId, currentUserRole);
             if (invoice == null)
             {
-                // Could be not found OR forbidden (user trying to access someone else's invoice)
                 return NotFound(new { message = $"Invoice with ID {id} not found or access denied" });
             }
 
@@ -79,7 +100,40 @@ public class InvoiceController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new invoice (User role creates with Pending status)
+    /// Get activity log for an invoice
+    /// </summary>
+    [HttpGet("{id}/activity")]
+    [ProducesResponseType(typeof(IEnumerable<InvoiceActivityReadDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetInvoiceActivity(int id)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var currentUserRole = GetCurrentUserRole();
+
+            // First check if user can access this invoice
+            var invoice = await _invoiceService.GetInvoiceByIdAsync(id, currentUserId, currentUserRole);
+            if (invoice == null)
+            {
+                return NotFound(new { message = $"Invoice with ID {id} not found or access denied" });
+            }
+
+            var activities = await _activityService.GetActivitiesForInvoiceAsync(id);
+            return Ok(activities);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving activity for invoice {InvoiceId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "An error occurred while retrieving invoice activity"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Create a new invoice
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "User,Management,Admin")]
@@ -95,11 +149,18 @@ public class InvoiceController : ControllerBase
         try
         {
             var currentUserId = GetCurrentUserId();
-            var invoice = await _invoiceService.CreateInvoiceAsync(createDto, currentUserId);
+            var currentUserRole = GetCurrentUserRole();
+            var currentUsername = GetCurrentUsername();
+
+            var (invoice, invoiceId) = await _invoiceService.CreateInvoiceAsync(createDto, currentUserId, currentUserRole, currentUsername);
             
-            return CreatedAtAction(nameof(GetInvoiceById), new { id = invoice.Id }, invoice);
+            return CreatedAtAction(nameof(GetInvoiceById), new { id = invoiceId }, invoice);
         }
         catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -114,7 +175,7 @@ public class InvoiceController : ControllerBase
     }
 
     /// <summary>
-    /// Update invoice status (Management and Admin only can Approve/Reject)
+    /// Update invoice status (Management and Admin only)
     /// </summary>
     [HttpPatch("{id}/status")]
     [Authorize(Roles = "Management,Admin")]
@@ -133,8 +194,9 @@ public class InvoiceController : ControllerBase
         {
             var currentUserId = GetCurrentUserId();
             var currentUserRole = GetCurrentUserRole();
+            var currentUsername = GetCurrentUsername();
 
-            var invoice = await _invoiceService.UpdateInvoiceStatusAsync(id, updateDto, currentUserId, currentUserRole);
+            var invoice = await _invoiceService.UpdateInvoiceStatusAsync(id, updateDto, currentUserId, currentUserRole, currentUsername);
             if (invoice == null)
             {
                 return NotFound(new { message = $"Invoice with ID {id} not found" });
@@ -145,6 +207,10 @@ public class InvoiceController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -157,7 +223,7 @@ public class InvoiceController : ControllerBase
     }
 
     /// <summary>
-    /// Delete an invoice (Users can delete their own, Management/Admin can delete any)
+    /// Delete an invoice (soft delete)
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -169,8 +235,9 @@ public class InvoiceController : ControllerBase
         {
             var currentUserId = GetCurrentUserId();
             var currentUserRole = GetCurrentUserRole();
+            var currentUsername = GetCurrentUsername();
 
-            var success = await _invoiceService.DeleteInvoiceAsync(id, currentUserId, currentUserRole);
+            var success = await _invoiceService.DeleteInvoiceAsync(id, currentUserId, currentUserRole, currentUsername);
             if (!success)
             {
                 return NotFound(new { message = $"Invoice with ID {id} not found" });
@@ -181,6 +248,10 @@ public class InvoiceController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -194,33 +265,32 @@ public class InvoiceController : ControllerBase
 
     #region Helper Methods
 
-    /// <summary>
-    /// Extract current user ID from JWT claims
-    /// </summary>
     private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
         {
-            _logger.LogError("Unable to extract user ID from JWT claims");
             throw new UnauthorizedAccessException("Invalid user authentication");
         }
         return userId;
     }
 
-    /// <summary>
-    /// Extract current user role from JWT claims
-    /// </summary>
     private string GetCurrentUserRole()
     {
         var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
         if (string.IsNullOrEmpty(roleClaim))
         {
-            _logger.LogError("Unable to extract user role from JWT claims");
             throw new UnauthorizedAccessException("Invalid user authentication");
         }
         return roleClaim;
     }
 
+    private string GetCurrentUsername()
+    {
+        var usernameClaim = User.FindFirst(ClaimTypes.Name)?.Value;
+        return usernameClaim ?? "Unknown";
+    }
+
     #endregion
 }
+

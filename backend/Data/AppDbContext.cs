@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Vendor> Vendors { get; set; } = null!;
     public DbSet<Invoice> Invoices { get; set; } = null!;
+    public DbSet<InvoiceActivity> InvoiceActivities { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -100,6 +101,44 @@ public class AppDbContext : DbContext
                 .WithMany(u => u.Invoices)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+        });
+
+        // Configure InvoiceActivity entity
+        modelBuilder.Entity<InvoiceActivity>(entity =>
+        {
+            entity.ToTable("InvoiceActivities");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Action)
+                .IsRequired()
+                .HasConversion<string>();
+
+            entity.Property(e => e.PerformedByUsername)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.PerformedByRole)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            entity.Property(e => e.Metadata)
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.Timestamp)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(e => e.Invoice)
+                .WithMany()
+                .HasForeignKey(e => e.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.PerformedBy)
+                .WithMany()
+                .HasForeignKey(e => e.PerformedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => e.InvoiceId);
+            entity.HasIndex(e => e.Timestamp);
         });
 
         // Seed initial data (optional)

@@ -1,6 +1,7 @@
 'use client';
 
-import { Trash2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Trash2, ChevronDown, ChevronUp, MessageCircle, Search, Ban } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -11,60 +12,134 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { CreateInvoiceDialog } from '@/components/create-invoice-dialog';
-import { useInvoices, useDeleteInvoice } from '@/hooks/use-invoices';
-import { InvoiceStatus } from '@/lib/types';
-import { Spinner } from '@/components/ui/spinner';
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
+import { InvoiceDetailDrawer } from '@/components/invoice-detail-drawer';
+import { useInvoices, useDeleteInvoice, InvoiceFilters } from '@/hooks/use-invoices';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { format } from 'date-fns';
 
+type SortField = 'createdAt' | 'amount' | 'vendor' | 'status';
+type SortOrder = 'asc' | 'desc';
+
 export default function MyRequestsPage() {
-    const { data: invoices, isLoading, error } = useInvoices();
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [sortField, setSortField] = useState<SortField>('createdAt');
+    const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [drawerInvoiceId, setDrawerInvoiceId] = useState<number | null>(null);
+    const [searchInput, setSearchInput] = useState('');
+    const debouncedSearch = useDebouncedValue(searchInput, 300);
+
+    // Build filters
+    const filters: InvoiceFilters = useMemo(() => {
+        const f: InvoiceFilters = {
+            sortBy: sortField,
+            sortOrder,
+        };
+        if (statusFilter !== 'all') {
+            f.status = statusFilter === 'pending' ? 0 : statusFilter === 'approved' ? 1 : 2;
+        }
+        if (debouncedSearch.trim()) {
+            f.search = debouncedSearch.trim();
+        }
+        return f;
+    }, [sortField, sortOrder, statusFilter, debouncedSearch]);
+
+    const { data: invoices, isLoading, error } = useInvoices(filters);
     const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
 
-    const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to delete this invoice?')) {
-            deleteInvoice(id);
+    const handleDeleteClick = (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedInvoiceId(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (selectedInvoiceId) {
+            deleteInvoice(selectedInvoiceId);
+            setDeleteDialogOpen(false);
+            setSelectedInvoiceId(null);
         }
     };
 
-    const getStatusBadge = (status: InvoiceStatus) => {
-        switch (status) {
-            case 'Approved':
-                return (
-                    <Badge variant="outline" className="h-5 bg-green-50 text-green-700 border-green-200 hover:bg-green-50 px-2 text-[10px] uppercase tracking-wide font-semibold">
-                        Approved
-                    </Badge>
-                );
-            case 'Rejected':
-                return (
-                    <Badge variant="outline" className="h-5 bg-red-50 text-red-700 border-red-200 hover:bg-red-50 px-2 text-[10px] uppercase tracking-wide font-semibold">
-                        Rejected
-                    </Badge>
-                );
-            default:
-                return (
-                    <Badge variant="outline" className="h-5 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-50 px-2 text-[10px] uppercase tracking-wide font-semibold">
-                        Pending
-                    </Badge>
-                );
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortOrder('desc');
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex h-64 items-center justify-center">
-                <Spinner className="h-8 w-8 text-muted-foreground" />
-            </div>
-        );
-    }
+    const handleRowClick = (id: number) => {
+        setDrawerInvoiceId(id);
+        setDrawerOpen(true);
+    };
 
-    if (error) {
-        return (
-            <div className="flex h-64 items-center justify-center text-destructive text-sm">
-                Failed to load requests. Please try again.
-            </div>
+    const SortIcon = ({ field }: { field: SortField }) => {
+        if (sortField !== field) return null;
+        return sortOrder === 'asc' ? (
+            <ChevronUp className="h-3 w-3 ml-1 inline" />
+        ) : (
+            <ChevronDown className="h-3 w-3 ml-1 inline" />
         );
-    }
+    };
+
+    const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+        const badge = (
+            <Badge
+                variant="outline"
+                className={
+                    status === 'Approved'
+                        ? 'h-5 bg-green-50 text-green-700 border-green-200 hover:bg-green-50 px-2 text-[10px] uppercase tracking-wide font-semibold'
+                        : status === 'Rejected'
+                            ? 'h-5 bg-red-50 text-red-700 border-red-200 hover:bg-red-50 px-2 text-[10px] uppercase tracking-wide font-semibold'
+                            : 'h-5 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-50 px-2 text-[10px] uppercase tracking-wide font-semibold'
+                }
+            >
+                {status}
+            </Badge>
+        );
+
+        if (status === 'Rejected' && rejectionReason) {
+            return (
+                <div className="flex items-center gap-1.5">
+                    {badge}
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <MessageCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[250px] text-xs">
+                                <p className="font-medium mb-1">Rejection Reason:</p>
+                                <p>{rejectionReason}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+            );
+        }
+
+        return badge;
+    };
 
     return (
         <div className="space-y-4">
@@ -75,60 +150,150 @@ export default function MyRequestsPage() {
                         Manage your invoice requests and view their status.
                     </p>
                 </div>
-                {/* onSuccess is no longer needed as the query invalidates itself */}
-                <CreateInvoiceDialog />
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search vendor..."
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            className="pl-8 h-8 w-[150px] text-xs"
+                        />
+                    </div>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[120px] h-8 text-xs">
+                            <SelectValue placeholder="Filter status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all" className="text-xs">All Status</SelectItem>
+                            <SelectItem value="pending" className="text-xs">Pending</SelectItem>
+                            <SelectItem value="approved" className="text-xs">Approved</SelectItem>
+                            <SelectItem value="rejected" className="text-xs">Rejected</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <CreateInvoiceDialog />
+                </div>
             </div>
 
-            <div className="rounded border bg-card/50">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="h-9 hover:bg-transparent">
-                            <TableHead className="w-[100px] h-9 text-xs font-semibold">ID</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold">Vendor</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold">Date</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold">Amount</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold">Status</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {!invoices || invoices.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center text-xs text-muted-foreground">
-                                    No requests found.
-                                </TableCell>
+            {isLoading ? (
+                <TableSkeleton columns={6} rows={5} />
+            ) : error ? (
+                <div className="flex h-64 items-center justify-center text-destructive text-sm">
+                    Failed to load requests. Please try again.
+                </div>
+            ) : (
+                <div className="rounded border bg-card/50">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="h-9 hover:bg-transparent">
+                                <TableHead className="w-[80px] h-9 text-xs font-semibold">ID</TableHead>
+                                <TableHead
+                                    className="h-9 text-xs font-semibold cursor-pointer select-none"
+                                    onClick={() => handleSort('vendor')}
+                                >
+                                    Vendor <SortIcon field="vendor" />
+                                </TableHead>
+                                <TableHead
+                                    className="h-9 text-xs font-semibold cursor-pointer select-none"
+                                    onClick={() => handleSort('createdAt')}
+                                >
+                                    Date <SortIcon field="createdAt" />
+                                </TableHead>
+                                <TableHead
+                                    className="h-9 text-xs font-semibold cursor-pointer select-none"
+                                    onClick={() => handleSort('amount')}
+                                >
+                                    Amount <SortIcon field="amount" />
+                                </TableHead>
+                                <TableHead
+                                    className="h-9 text-xs font-semibold cursor-pointer select-none"
+                                    onClick={() => handleSort('status')}
+                                >
+                                    Status <SortIcon field="status" />
+                                </TableHead>
+                                <TableHead className="h-9 text-xs font-semibold text-right">Actions</TableHead>
                             </TableRow>
-                        ) : (
-                            invoices.map((invoice) => (
-                                <TableRow key={invoice.id} className="h-10">
-                                    <TableCell className="font-medium text-xs dark:text-gray-300">#{invoice.id}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{invoice.vendorName}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">
-                                        {format(new Date(invoice.createdAt), 'MMM dd, yyyy')}
-                                    </TableCell>
-                                    <TableCell className="text-xs font-medium dark:text-gray-300">${invoice.amount.toFixed(2)}</TableCell>
-                                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                                    <TableCell className="text-right">
-                                        {invoice.status === 'Pending' && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-7 w-7 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() => handleDelete(invoice.id)}
-                                                disabled={isDeleting}
-                                                title="Delete Invoice"
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                                <span className="sr-only">Delete</span>
-                                            </Button>
-                                        )}
+                        </TableHeader>
+                        <TableBody>
+                            {!invoices || invoices.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="h-24 text-center text-xs text-muted-foreground">
+                                        {debouncedSearch
+                                            ? 'No invoices match your search.'
+                                            : statusFilter === 'all'
+                                                ? 'No requests yet. Create your first invoice request →'
+                                                : 'No matching requests found.'}
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            ) : (
+                                invoices.map((invoice) => (
+                                    <TableRow
+                                        key={invoice.id}
+                                        className="h-10 cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleRowClick(invoice.id)}
+                                    >
+                                        <TableCell className="font-medium text-xs dark:text-gray-300">#{invoice.id}</TableCell>
+                                        <TableCell className="text-xs text-muted-foreground">{invoice.vendorName}</TableCell>
+                                        <TableCell className="text-xs text-muted-foreground">
+                                            {format(new Date(invoice.createdAt), 'MMM dd, yyyy')}
+                                        </TableCell>
+                                        <TableCell className="text-xs font-medium dark:text-gray-300">${invoice.amount.toFixed(2)}</TableCell>
+                                        <TableCell>{getStatusBadge(invoice.status, invoice.rejectionReason)}</TableCell>
+                                        <TableCell className="text-right">
+                                            {invoice.status === 'Pending' ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
+                                                    onClick={(e) => handleDeleteClick(invoice.id, e)}
+                                                    disabled={isDeleting}
+                                                    title="Delete Invoice"
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                    <span className="sr-only">Delete</span>
+                                                </Button>
+                                            ) : (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-7 w-7 text-muted-foreground/30 cursor-not-allowed"
+                                                                disabled
+                                                            >
+                                                                <Ban className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" className="text-xs">
+                                                            Only pending invoices can be deleted
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
+
+            <DeleteConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Invoice"
+                description="Are you sure you want to delete this invoice? This action cannot be undone."
+                isPending={isDeleting}
+            />
+
+            <InvoiceDetailDrawer
+                invoiceId={drawerInvoiceId}
+                open={drawerOpen}
+                onOpenChange={setDrawerOpen}
+            />
         </div>
     );
 }

@@ -169,6 +169,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
+builder.Services.AddScoped<IInvoiceActivityService, InvoiceActivityService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
 // Configure CORS - Allow All for Development

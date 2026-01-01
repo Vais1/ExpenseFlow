@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using VendorPay.Data;
 using VendorPay.DTOs;
 using VendorPay.Models;
 using VendorPay.Repositories;
@@ -7,54 +8,102 @@ namespace VendorPay.Services;
 
 public interface IInvoiceService
 {
-    Task<IEnumerable<InvoiceReadDto>> GetInvoicesAsync(int currentUserId, string currentUserRole);
+    Task<IEnumerable<InvoiceReadDto>> GetInvoicesAsync(
+        int currentUserId, 
+        string currentUserRole, 
+        InvoiceStatus? status = null, 
+        string? sortBy = null, 
+        string? sortOrder = null,
+        string? search = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null);
     Task<InvoiceReadDto?> GetInvoiceByIdAsync(int id, int currentUserId, string currentUserRole);
-    Task<InvoiceReadDto> CreateInvoiceAsync(InvoiceCreateDto createDto, int currentUserId);
-    Task<InvoiceReadDto?> UpdateInvoiceStatusAsync(int id, InvoiceUpdateStatusDto updateDto, int currentUserId, string currentUserRole);
-    Task<bool> DeleteInvoiceAsync(int id, int currentUserId, string currentUserRole);
+    Task<(InvoiceReadDto Invoice, int InvoiceId)> CreateInvoiceAsync(InvoiceCreateDto createDto, int currentUserId, string currentUserRole, string currentUsername);
+    Task<InvoiceReadDto?> UpdateInvoiceStatusAsync(int id, InvoiceUpdateStatusDto updateDto, int currentUserId, string currentUserRole, string currentUsername);
+    Task<bool> DeleteInvoiceAsync(int id, int currentUserId, string currentUserRole, string currentUsername);
 }
 
 public class InvoiceService : IInvoiceService
 {
     private readonly IRepository<Invoice> _invoiceRepository;
     private readonly IRepository<Vendor> _vendorRepository;
-    private readonly IRepository<User> _userRepository;
     private readonly AppDbContext _context;
+    private readonly IInvoiceActivityService _activityService;
     private readonly ILogger<InvoiceService> _logger;
 
     public InvoiceService(
         IRepository<Invoice> invoiceRepository,
         IRepository<Vendor> vendorRepository,
-        IRepository<User> userRepository,
         AppDbContext context,
+        IInvoiceActivityService activityService,
         ILogger<InvoiceService> logger)
     {
         _invoiceRepository = invoiceRepository;
         _vendorRepository = vendorRepository;
-        _userRepository = userRepository;
         _context = context;
+        _activityService = activityService;
         _logger = logger;
     }
 
-    public async Task<IEnumerable<InvoiceReadDto>> GetInvoicesAsync(int currentUserId, string currentUserRole)
+    public async Task<IEnumerable<InvoiceReadDto>> GetInvoicesAsync(
+        int currentUserId, 
+        string currentUserRole, 
+        InvoiceStatus? status = null, 
+        string? sortBy = null, 
+        string? sortOrder = null,
+        string? search = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null)
     {
         IQueryable<Invoice> query = _context.Invoices
             .Include(i => i.Vendor)
-            .Include(i => i.User);
+            .Include(i => i.User)
+            .Where(i => !i.IsDeleted);
 
-        // Role-based filtering: User sees only their own invoices
+        // Role-based filtering
         if (currentUserRole == UserRole.User.ToString())
         {
             query = query.Where(i => i.UserId == currentUserId);
-            _logger.LogInformation("User {UserId} retrieving their own invoices", currentUserId);
-        }
-        else
-        {
-            // Management and Admin see all invoices
-            _logger.LogInformation("User {UserId} with role {Role} retrieving all invoices", currentUserId, currentUserRole);
         }
 
-        var invoices = await query.OrderByDescending(i => i.CreatedAt).ToListAsync();
+        // Status filtering
+        if (status.HasValue)
+        {
+            query = query.Where(i => i.Status == status.Value);
+        }
+
+        // Search filtering (vendor name or username)
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(i => 
+                i.Vendor.Name.ToLower().Contains(searchLower) ||
+                i.User.Username.ToLower().Contains(searchLower) ||
+                i.Description.ToLower().Contains(searchLower));
+        }
+
+        // Date range filtering
+        if (fromDate.HasValue)
+        {
+            query = query.Where(i => i.CreatedAt >= fromDate.Value);
+        }
+        if (toDate.HasValue)
+        {
+            query = query.Where(i => i.CreatedAt <= toDate.Value.AddDays(1));
+        }
+
+        // Sorting
+        var sortOrderDesc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+        query = sortBy?.ToLower() switch
+        {
+            "amount" => sortOrderDesc ? query.OrderByDescending(i => i.Amount) : query.OrderBy(i => i.Amount),
+            "status" => sortOrderDesc ? query.OrderByDescending(i => i.Status) : query.OrderBy(i => i.Status),
+            "vendor" => sortOrderDesc ? query.OrderByDescending(i => i.Vendor.Name) : query.OrderBy(i => i.Vendor.Name),
+            "user" => sortOrderDesc ? query.OrderByDescending(i => i.User.Username) : query.OrderBy(i => i.User.Username),
+            _ => query.OrderByDescending(i => i.CreatedAt)
+        };
+
+        var invoices = await query.ToListAsync();
         return invoices.Select(MapToReadDto);
     }
 
@@ -63,48 +112,41 @@ public class InvoiceService : IInvoiceService
         var invoice = await _context.Invoices
             .Include(i => i.Vendor)
             .Include(i => i.User)
-            .FirstOrDefaultAsync(i => i.Id == id);
+            .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted);
 
         if (invoice == null)
         {
-            _logger.LogWarning("Invoice {InvoiceId} not found", id);
             return null;
         }
 
-        // Role-based access: User can only see their own invoices
+        // Role-based access
         if (currentUserRole == UserRole.User.ToString() && invoice.UserId != currentUserId)
         {
-            _logger.LogWarning("User {UserId} attempted to access invoice {InvoiceId} belonging to another user", currentUserId, id);
-            return null; // Return null to indicate forbidden access
+            return null;
         }
 
         return MapToReadDto(invoice);
     }
 
-    public async Task<InvoiceReadDto> CreateInvoiceAsync(InvoiceCreateDto createDto, int currentUserId)
+    public async Task<(InvoiceReadDto Invoice, int InvoiceId)> CreateInvoiceAsync(InvoiceCreateDto createDto, int currentUserId, string currentUserRole, string currentUsername)
     {
         int finalVendorId;
 
-        // Logic to handle VendorId or VendorName
         if (createDto.VendorId.HasValue && createDto.VendorId.Value > 0)
         {
-            // Case 1: Existing Vendor ID provided
-            var vendor = await _vendorRepository.GetByIdAsync(createDto.VendorId.Value);
+            var vendor = await _context.Vendors
+                .FirstOrDefaultAsync(v => v.Id == createDto.VendorId.Value && !v.IsDeleted && v.Status == VendorStatus.Active);
             if (vendor == null)
             {
-                _logger.LogWarning("Vendor {VendorId} not found for invoice creation", createDto.VendorId);
-                throw new InvalidOperationException($"Vendor with ID {createDto.VendorId} not found");
+                throw new InvalidOperationException($"Vendor with ID {createDto.VendorId} not found or is inactive");
             }
             finalVendorId = vendor.Id;
         }
         else if (!string.IsNullOrWhiteSpace(createDto.VendorName))
         {
-            // Case 2: Vendor Name provided (Find or Create)
             var vendorName = createDto.VendorName.Trim();
-            
-            // Try to find existing vendor by name (Case-insensitive check would be ideal, but simple match for now)
             var existingVendor = await _context.Vendors
-                .FirstOrDefaultAsync(v => v.Name.ToLower() == vendorName.ToLower());
+                .FirstOrDefaultAsync(v => v.Name.ToLower() == vendorName.ToLower() && !v.IsDeleted && v.Status == VendorStatus.Active);
 
             if (existingVendor != null)
             {
@@ -112,25 +154,23 @@ public class InvoiceService : IInvoiceService
             }
             else
             {
-                // Create new vendor
                 var newVendor = new Vendor
                 {
                     Name = vendorName,
-                    Category = "Uncategorized", // Default category
+                    Category = "Uncategorized",
+                    Status = VendorStatus.Active,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
                 
                 await _vendorRepository.AddAsync(newVendor);
-                await _vendorRepository.SaveChangesAsync(); // Save to generate ID
+                await _vendorRepository.SaveChangesAsync();
                 finalVendorId = newVendor.Id;
-                
-                _logger.LogInformation("Created new vendor '{VendorName}' (ID: {VendorId}) for invoice creation", vendorName, finalVendorId);
             }
         }
         else
         {
-             throw new ArgumentException("Either VendorId or VendorName must be provided.");
+            throw new ArgumentException("Either VendorId or VendorName must be provided.");
         }
 
         var invoice = new Invoice
@@ -139,7 +179,7 @@ public class InvoiceService : IInvoiceService
             Description = createDto.Description,
             VendorId = finalVendorId,
             UserId = currentUserId,
-            Status = InvoiceStatus.Pending, // Always default to Pending
+            Status = InvoiceStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -147,68 +187,118 @@ public class InvoiceService : IInvoiceService
         await _invoiceRepository.AddAsync(invoice);
         await _invoiceRepository.SaveChangesAsync();
 
-        _logger.LogInformation("Invoice {InvoiceId} created by User {UserId}", invoice.Id, currentUserId);
+        // Log activity
+        await _activityService.LogActivityAsync(
+            invoice.Id,
+            InvoiceActivityAction.Created,
+            currentUserId,
+            currentUsername,
+            currentUserRole,
+            new { amount = createDto.Amount, description = createDto.Description }
+        );
 
-        // Reload with navigation properties
         var createdInvoice = await _context.Invoices
             .Include(i => i.Vendor)
             .Include(i => i.User)
             .FirstOrDefaultAsync(i => i.Id == invoice.Id);
 
-        return MapToReadDto(createdInvoice!);
+        return (MapToReadDto(createdInvoice!), invoice.Id);
     }
 
-    public async Task<InvoiceReadDto?> UpdateInvoiceStatusAsync(int id, InvoiceUpdateStatusDto updateDto, int currentUserId, string currentUserRole)
+    public async Task<InvoiceReadDto?> UpdateInvoiceStatusAsync(int id, InvoiceUpdateStatusDto updateDto, int currentUserId, string currentUserRole, string currentUsername)
     {
-        // Only Management role can update status
+        // Role check
         if (currentUserRole != UserRole.Management.ToString() && currentUserRole != UserRole.Admin.ToString())
         {
-            _logger.LogWarning("User {UserId} with role {Role} attempted to update invoice status - forbidden", currentUserId, currentUserRole);
             throw new UnauthorizedAccessException("Only Management and Admin can update invoice status");
+        }
+
+        // Validate rejection reason
+        if (updateDto.Status == InvoiceStatus.Rejected && string.IsNullOrWhiteSpace(updateDto.RejectionReason))
+        {
+            throw new ArgumentException("Rejection reason is required when rejecting an invoice");
         }
 
         var invoice = await _context.Invoices
             .Include(i => i.Vendor)
             .Include(i => i.User)
-            .FirstOrDefaultAsync(i => i.Id == id);
+            .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted);
 
         if (invoice == null)
         {
-            _logger.LogWarning("Invoice {InvoiceId} not found for status update", id);
             return null;
         }
 
+        var previousStatus = invoice.Status;
         invoice.Status = updateDto.Status;
         invoice.UpdatedAt = DateTime.UtcNow;
 
-        await _invoiceRepository.UpdateAsync(invoice);
-        await _invoiceRepository.SaveChangesAsync();
+        if (updateDto.Status == InvoiceStatus.Rejected)
+        {
+            invoice.RejectionReason = updateDto.RejectionReason;
+        }
+        else
+        {
+            invoice.RejectionReason = null;
+        }
 
-        _logger.LogInformation("Invoice {InvoiceId} status updated to {Status} by User {UserId}", id, updateDto.Status, currentUserId);
+        await _context.SaveChangesAsync();
+
+        // Log activity
+        var action = updateDto.Status == InvoiceStatus.Approved 
+            ? InvoiceActivityAction.Approved 
+            : InvoiceActivityAction.Rejected;
+        
+        await _activityService.LogActivityAsync(
+            id,
+            action,
+            currentUserId,
+            currentUsername,
+            currentUserRole,
+            new { 
+                previousStatus = previousStatus.ToString(), 
+                newStatus = updateDto.Status.ToString(),
+                rejectionReason = updateDto.RejectionReason
+            }
+        );
 
         return MapToReadDto(invoice);
     }
 
-    public async Task<bool> DeleteInvoiceAsync(int id, int currentUserId, string currentUserRole)
+    public async Task<bool> DeleteInvoiceAsync(int id, int currentUserId, string currentUserRole, string currentUsername)
     {
-        var invoice = await _invoiceRepository.GetByIdAsync(id);
+        var invoice = await _context.Invoices.FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted);
         if (invoice == null)
         {
-            _logger.LogWarning("Invoice {InvoiceId} not found for deletion", id);
             return false;
         }
 
-        // Users can only delete their own invoices, Management/Admin can delete any
-        if (currentUserRole == UserRole.User.ToString() && invoice.UserId != currentUserId)
+        // Users can only delete their own pending invoices
+        if (currentUserRole == UserRole.User.ToString())
         {
-            _logger.LogWarning("User {UserId} attempted to delete invoice {InvoiceId} belonging to another user", currentUserId, id);
-            throw new UnauthorizedAccessException("You can only delete your own invoices");
+            if (invoice.UserId != currentUserId)
+            {
+                throw new UnauthorizedAccessException("You can only delete your own invoices");
+            }
+            if (invoice.Status != InvoiceStatus.Pending)
+            {
+                throw new InvalidOperationException("You can only delete pending invoices");
+            }
         }
 
-        await _invoiceRepository.DeleteAsync(invoice);
-        await _invoiceRepository.SaveChangesAsync();
+        invoice.IsDeleted = true;
+        invoice.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Invoice {InvoiceId} deleted by User {UserId}", id, currentUserId);
+        // Log activity
+        await _activityService.LogActivityAsync(
+            id,
+            InvoiceActivityAction.Deleted,
+            currentUserId,
+            currentUsername,
+            currentUserRole,
+            null
+        );
 
         return true;
     }
@@ -221,6 +311,7 @@ public class InvoiceService : IInvoiceService
             Amount = invoice.Amount,
             Status = invoice.Status.ToString(),
             Description = invoice.Description,
+            RejectionReason = invoice.RejectionReason,
             VendorId = invoice.VendorId,
             UserId = invoice.UserId,
             VendorName = invoice.Vendor?.Name ?? string.Empty,
@@ -231,3 +322,5 @@ public class InvoiceService : IInvoiceService
         };
     }
 }
+
+

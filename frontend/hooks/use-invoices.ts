@@ -1,21 +1,63 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Invoice, InvoiceCreateDto, InvoiceSchema, InvoiceUpdateStatusDto } from '@/lib/types';
+import { Invoice, InvoiceCreateDto, InvoiceSchema, InvoiceUpdateStatusDto, InvoiceStatus, InvoiceActivity, InvoiceActivitySchema } from '@/lib/types';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+export interface InvoiceFilters {
+    status?: number; // 0=Pending, 1=Approved, 2=Rejected
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    search?: string;
+    fromDate?: string;
+    toDate?: string;
+}
+
 const invoiceKeys = {
     all: ['invoices'] as const,
-    detail: (id: number) => [...invoiceKeys.all, id] as const,
+    filtered: (filters: InvoiceFilters) => [...invoiceKeys.all, 'filtered', filters] as const,
+    detail: (id: number) => [...invoiceKeys.all, 'detail', id] as const,
+    activity: (id: number) => [...invoiceKeys.all, 'activity', id] as const,
 };
 
-export function useInvoices() {
+export function useInvoices(filters?: InvoiceFilters) {
     return useQuery({
-        queryKey: invoiceKeys.all,
+        queryKey: filters ? invoiceKeys.filtered(filters) : invoiceKeys.all,
         queryFn: async () => {
-            const { data } = await api.get('/invoice');
+            const params = new URLSearchParams();
+            if (filters?.status !== undefined) params.append('status', String(filters.status));
+            if (filters?.sortBy) params.append('sortBy', filters.sortBy);
+            if (filters?.sortOrder) params.append('sortOrder', filters.sortOrder);
+            if (filters?.search) params.append('search', filters.search);
+            if (filters?.fromDate) params.append('fromDate', filters.fromDate);
+            if (filters?.toDate) params.append('toDate', filters.toDate);
+
+            const url = params.toString() ? `/invoice?${params.toString()}` : '/invoice';
+            const { data } = await api.get(url);
             return z.array(InvoiceSchema).parse(data);
         },
+    });
+}
+
+export function useInvoice(id: number) {
+    return useQuery({
+        queryKey: invoiceKeys.detail(id),
+        queryFn: async () => {
+            const { data } = await api.get(`/invoice/${id}`);
+            return InvoiceSchema.parse(data);
+        },
+        enabled: id > 0,
+    });
+}
+
+export function useInvoiceActivity(id: number) {
+    return useQuery({
+        queryKey: invoiceKeys.activity(id),
+        queryFn: async () => {
+            const { data } = await api.get(`/invoice/${id}/activity`);
+            return z.array(InvoiceActivitySchema).parse(data);
+        },
+        enabled: id > 0,
     });
 }
 
@@ -33,9 +75,10 @@ export function useCreateInvoice() {
                 description: "Your invoice has been submitted successfully.",
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+            const err = error as { response?: { data?: { message?: string } } };
             toast.error("Error", {
-                description: error.response?.data?.message || "Failed to create invoice.",
+                description: err.response?.data?.message ?? "Failed to create invoice.",
             });
         },
     });
@@ -45,27 +88,42 @@ export function useUpdateInvoiceStatus() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, status }: { id: number } & InvoiceUpdateStatusDto) => {
-            const { data } = await api.patch(`/invoice/${id}/status`, { status });
+        mutationFn: async ({ id, status, rejectionReason }: { id: number; status: InvoiceStatus; rejectionReason?: string }) => {
+            const payload: InvoiceUpdateStatusDto = { status };
+            if (rejectionReason) {
+                payload.rejectionReason = rejectionReason;
+            }
+            const { data } = await api.patch(`/invoice/${id}/status`, payload);
             return InvoiceSchema.parse(data);
         },
         onMutate: async ({ id, status }) => {
             await queryClient.cancelQueries({ queryKey: invoiceKeys.all });
             const previousInvoices = queryClient.getQueryData<Invoice[]>(invoiceKeys.all);
 
-            if (previousInvoices) {
-                queryClient.setQueryData<Invoice[]>(invoiceKeys.all, (old) =>
-                    old?.map((inv) => (inv.id === id ? { ...inv, status } : inv))
-                );
-            }
+            // Optimistic update for all invoice queries
+            queryClient.setQueriesData<Invoice[]>(
+                { queryKey: invoiceKeys.all },
+                (old) => old?.map((inv) => (inv.id === id ? { ...inv, status } : inv))
+            );
 
             return { previousInvoices };
         },
-        onError: (err, newTodo, context) => {
-            queryClient.setQueryData(invoiceKeys.all, context?.previousInvoices);
-            toast.error("Error", {
-                description: "Failed to update invoice status.",
+        onError: (err, _vars, context) => {
+            // Rollback on error
+            if (context?.previousInvoices) {
+                queryClient.setQueryData(invoiceKeys.all, context.previousInvoices);
+            }
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error("Update Failed", {
+                description: error.response?.data?.message ?? "Failed to update invoice status. Changes have been reverted.",
             });
+        },
+        onSuccess: (_, { id }) => {
+            toast.success("Status Updated", {
+                description: "Invoice status has been updated successfully.",
+            });
+            // Also invalidate activity to show new entry
+            queryClient.invalidateQueries({ queryKey: invoiceKeys.activity(id) });
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
@@ -79,17 +137,39 @@ export function useDeleteInvoice() {
     return useMutation({
         mutationFn: async (id: number) => {
             await api.delete(`/invoice/${id}`);
+            return id;
+        },
+        onMutate: async (id: number) => {
+            await queryClient.cancelQueries({ queryKey: invoiceKeys.all });
+            const previousInvoices = queryClient.getQueryData<Invoice[]>(invoiceKeys.all);
+
+            // Optimistic removal
+            queryClient.setQueriesData<Invoice[]>(
+                { queryKey: invoiceKeys.all },
+                (old) => old?.filter((inv) => inv.id !== id)
+            );
+
+            return { previousInvoices };
+        },
+        onError: (err, _id, context) => {
+            // Rollback on error
+            if (context?.previousInvoices) {
+                queryClient.setQueryData(invoiceKeys.all, context.previousInvoices);
+            }
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error("Delete Failed", {
+                description: error.response?.data?.message ?? "Failed to delete invoice. Changes have been reverted.",
+            });
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
             toast.success("Invoice Deleted", {
                 description: "The invoice has been removed.",
             });
         },
-        onError: (error: any) => {
-            toast.error("Error", {
-                description: error.response?.data?.message || "Failed to delete invoice.",
-            });
-        }
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+        },
     });
 }
+
+

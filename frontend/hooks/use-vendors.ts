@@ -6,17 +6,24 @@ import { z } from 'zod';
 
 const vendorKeys = {
     all: ['vendors'] as const,
+    active: ['vendors', 'active'] as const,
     detail: (id: number) => [...vendorKeys.all, id] as const,
 };
 
-export function useVendors() {
+export function useVendors(activeOnly = false) {
     return useQuery({
-        queryKey: vendorKeys.all,
+        queryKey: activeOnly ? vendorKeys.active : vendorKeys.all,
         queryFn: async () => {
-            const { data } = await api.get('/vendor');
+            const url = activeOnly ? '/vendor?activeOnly=true' : '/vendor';
+            const { data } = await api.get(url);
             return z.array(VendorSchema).parse(data);
         },
     });
+}
+
+// Convenience hook for invoice creation - only shows active vendors
+export function useActiveVendors() {
+    return useVendors(true);
 }
 
 export function useCreateVendor() {
@@ -33,9 +40,10 @@ export function useCreateVendor() {
                 description: "New vendor has been successfully added.",
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+            const err = error as { response?: { data?: { message?: string } } };
             toast.error("Error", {
-                description: error.response?.data?.message || "Failed to add vendor.",
+                description: err.response?.data?.message ?? "Failed to add vendor.",
             });
         },
     });
@@ -49,16 +57,42 @@ export function useUpdateVendor() {
             const { data } = await api.put(`/vendor/${id}`, payload);
             return VendorSchema.parse(data);
         },
+        onMutate: async ({ id, payload }) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: vendorKeys.all });
+
+            // Snapshot previous value
+            const previousVendors = queryClient.getQueryData<Vendor[]>(vendorKeys.all);
+
+            // Optimistically update
+            queryClient.setQueriesData<Vendor[]>(
+                { queryKey: vendorKeys.all },
+                (old) => old?.map((v) =>
+                    v.id === id
+                        ? { ...v, name: payload.name, category: payload.category, status: payload.status ?? v.status }
+                        : v
+                )
+            );
+
+            return { previousVendors };
+        },
+        onError: (err, _vars, context) => {
+            // Rollback on error
+            if (context?.previousVendors) {
+                queryClient.setQueryData(vendorKeys.all, context.previousVendors);
+            }
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error("Update Failed", {
+                description: error.response?.data?.message ?? "Failed to update vendor. Changes have been reverted.",
+            });
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: vendorKeys.all });
             toast.success("Vendor Updated", {
                 description: "Vendor details have been updated.",
             });
         },
-        onError: (error: any) => {
-            toast.error("Error", {
-                description: error.response?.data?.message || "Failed to update vendor.",
-            });
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: vendorKeys.all });
         },
     });
 }
@@ -69,17 +103,37 @@ export function useDeleteVendor() {
     return useMutation({
         mutationFn: async (id: number) => {
             await api.delete(`/vendor/${id}`);
+            return id;
+        },
+        onMutate: async (id: number) => {
+            await queryClient.cancelQueries({ queryKey: vendorKeys.all });
+            const previousVendors = queryClient.getQueryData<Vendor[]>(vendorKeys.all);
+
+            // Optimistic removal
+            queryClient.setQueriesData<Vendor[]>(
+                { queryKey: vendorKeys.all },
+                (old) => old?.filter((v) => v.id !== id)
+            );
+
+            return { previousVendors };
+        },
+        onError: (err, _id, context) => {
+            // Rollback on error
+            if (context?.previousVendors) {
+                queryClient.setQueryData(vendorKeys.all, context.previousVendors);
+            }
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error("Delete Failed", {
+                description: error.response?.data?.message ?? "Failed to delete vendor. Changes have been reverted.",
+            });
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: vendorKeys.all });
             toast.success("Vendor Deleted", {
                 description: "Vendor has been removed from the system.",
             });
         },
-        onError: (error: any) => {
-            toast.error("Error", {
-                description: error.response?.data?.message || "Failed to delete vendor.",
-            });
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: vendorKeys.all });
         },
     });
 }
