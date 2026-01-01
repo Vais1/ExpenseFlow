@@ -7,18 +7,36 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 import {
+    Settings,
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Wallet
+    User,
+    Moon,
+    Sun,
+    Monitor
 } from 'lucide-react';
 import { SidebarNav } from './sidebar-nav';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubTrigger,
+    DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function Sidebar() {
     const router = useRouter();
     const [session, setSession] = useState<AuthSession | null>(null);
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const { setTheme } = useTheme();
 
     useEffect(() => {
         const currentSession = authService.getSession();
@@ -81,28 +99,62 @@ export function Sidebar() {
 
             {/* Footer */}
             <div className="p-3 border-t bg-muted/20">
-                <div className={cn("flex items-center gap-2", isCollapsed && "justify-center flex-col gap-3")}>
-                    {!isCollapsed && (
-                        <div className="flex flex-col overflow-hidden min-w-0 flex-1">
-                            <span className="text-sm font-medium leading-none truncate">{session.user.username}</span>
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mt-1">{role}</span>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-1">
-                        <ThemeToggle />
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                         <Button
                             variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            onClick={handleLogout}
-                            title="Log Out"
+                            className={cn(
+                                "w-full flex items-center gap-2 h-10 px-2 justify-start hover:bg-accent hover:text-accent-foreground",
+                                isCollapsed && "justify-center px-0"
+                            )}
                         >
-                            <LogOut className="h-4 w-4" />
-                            <span className="sr-only">Log Out</span>
+                            <Settings className="h-5 w-5 shrink-0 text-muted-foreground" />
+                            {!isCollapsed && (
+                                <span className="text-sm font-medium text-muted-foreground">Settings</span>
+                            )}
                         </Button>
-                    </div>
-                </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        className="w-56"
+                        align="start"
+                        side={isCollapsed ? "right" : "top"}
+                        sideOffset={8}
+                    >
+                        <DropdownMenuLabel className="font-normal">
+                            <div className="flex flex-col space-y-1">
+                                <p className="text-sm font-medium leading-none">{session.user.username}</p>
+                                <p className="text-xs leading-none text-muted-foreground capitalize">{role}</p>
+                            </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <Sun className="mr-2 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                                <Moon className="absolute mr-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                                <span>Theme</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem onClick={() => setTheme("light")}>
+                                    <Sun className="mr-2 h-4 w-4" />
+                                    <span>Light</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                                    <Moon className="mr-2 h-4 w-4" />
+                                    <span>Dark</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setTheme("system")}>
+                                    <Monitor className="mr-2 h-4 w-4" />
+                                    <span>System</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
     );
