@@ -46,7 +46,6 @@ export default function UsersPage() {
         const checkRole = () => {
             const session = authService.getSession();
             if (!session || session.user.role !== 'Admin') {
-                // Not an admin - redirect to dashboard
                 router.push('/dashboard');
             } else {
                 setIsAdmin(true);
@@ -92,70 +91,70 @@ export default function UsersPage() {
     }
 
     if (!isAdmin) {
-        return null; // Redirect happens in useEffect
+        return null;
     }
 
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-xl font-semibold">User Management</h1>
-                <p className="text-sm text-muted-foreground">Admin-only: Create and manage user accounts</p>
+                <h1 className="text-xl font-semibold tracking-tight">User Management</h1>
+                <p className="text-sm text-muted-foreground mt-1">Create and manage user accounts</p>
             </div>
 
-            <Card className="max-w-md">
-                <CardHeader>
-                    <CardTitle className="text-base">Create Manager Account</CardTitle>
-                    <CardDescription className="text-xs">
+            <Card className="max-w-md shadow-sm">
+                <CardHeader className="px-6 pt-6 pb-4">
+                    <CardTitle className="text-lg font-semibold">Create Manager Account</CardTitle>
+                    <CardDescription className="text-sm mt-1">
                         Create a new Manager account. Managers can approve/reject invoices.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <CardContent className="px-6 pb-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                         {error && (
-                            <div className="bg-destructive/10 text-destructive text-xs p-2 rounded-sm font-medium">
+                            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg font-medium">
                                 {error}
                             </div>
                         )}
                         {success && (
-                            <div className="bg-green-100 text-green-800 text-xs p-2 rounded-sm font-medium">
+                            <div className="bg-green-100 text-green-800 text-sm p-3 rounded-lg font-medium">
                                 {success}
                             </div>
                         )}
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">Username</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="username" className="text-sm font-medium">Username</Label>
                             <Input
                                 id="username"
                                 placeholder="Enter manager username"
                                 disabled={isLoading}
-                                className="h-8 text-sm"
+                                className="h-11"
                                 {...register('username')}
                             />
                             {errors.username && (
-                                <p className="text-[10px] text-destructive font-medium">
+                                <p className="text-xs text-destructive font-medium">
                                     {errors.username.message}
                                 </p>
                             )}
                         </div>
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">Password</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                             <Input
                                 id="password"
                                 type="password"
                                 placeholder="Enter initial password"
                                 disabled={isLoading}
-                                className="h-8 text-sm"
+                                className="h-11"
                                 {...register('password')}
                             />
                             {errors.password && (
-                                <p className="text-[10px] text-destructive font-medium">
+                                <p className="text-xs text-destructive font-medium">
                                     {errors.password.message}
                                 </p>
                             )}
                         </div>
 
-                        <Button type="submit" className="w-full h-8 text-xs font-medium" disabled={isLoading}>
+                        <Button type="submit" className="w-full h-11 text-sm font-medium" disabled={isLoading}>
                             {isLoading ? 'Creating...' : 'Create Manager'}
                         </Button>
                     </form>

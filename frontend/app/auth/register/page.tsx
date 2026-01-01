@@ -50,7 +50,6 @@ export default function RegisterPage() {
         setError(null);
 
         try {
-            // Role is always User - enforced by backend
             await authService.register(data.username, data.password);
             router.push('/dashboard');
         } catch (err: unknown) {
@@ -62,90 +61,90 @@ export default function RegisterPage() {
     };
 
     return (
-        <Card className="w-full shadow-sm border-slate-200">
-            <CardHeader className="space-y-1 pb-6">
-                <div className="flex justify-center mb-4">
+        <Card className="w-full shadow-lg border-slate-200/80 rounded-xl">
+            <CardHeader className="space-y-2 px-8 pt-8 pb-4">
+                <div className="flex justify-center mb-6">
                     <Image
                         src="/logo.svg"
                         alt="VendorPay Logo"
-                        width={48}
-                        height={48}
+                        width={56}
+                        height={56}
                         priority
                     />
                 </div>
-                <CardTitle className="text-lg font-semibold tracking-tight text-center">Create Account</CardTitle>
-                <CardDescription className="text-xs text-center">
+                <CardTitle className="text-xl font-semibold tracking-tight text-center">Create Account</CardTitle>
+                <CardDescription className="text-sm text-center text-muted-foreground">
                     Register for a new user account
                 </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-5 px-8">
                     {error && (
-                        <div className="bg-destructive/10 text-destructive text-xs p-2 rounded-sm font-medium">
+                        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg font-medium">
                             {error}
                         </div>
                     )}
 
-                    <div className="space-y-1.5">
-                        <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">Username</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="username" className="text-sm font-medium">Username</Label>
                         <Input
                             id="username"
-                            placeholder="Enter your username"
+                            placeholder="Choose a username"
                             disabled={isLoading}
-                            className="h-8 text-sm"
+                            className="h-11"
                             {...register('username')}
                         />
                         {errors.username && (
-                            <p className="text-[10px] text-destructive font-medium">
+                            <p className="text-xs text-destructive font-medium">
                                 {errors.username.message}
                             </p>
                         )}
                     </div>
 
-                    <div className="space-y-1.5">
-                        <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">Password</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                         <Input
                             id="password"
                             type="password"
                             placeholder="Create a password"
                             disabled={isLoading}
-                            className="h-8 text-sm"
+                            className="h-11"
                             {...register('password')}
                         />
                         {errors.password && (
-                            <p className="text-[10px] text-destructive font-medium">
+                            <p className="text-xs text-destructive font-medium">
                                 {errors.password.message}
                             </p>
                         )}
                     </div>
 
-                    <div className="space-y-1.5">
-                        <Label htmlFor="confirmPassword" className="text-xs font-medium text-muted-foreground">Confirm Password</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
                         <Input
                             id="confirmPassword"
                             type="password"
                             placeholder="Confirm your password"
                             disabled={isLoading}
-                            className="h-8 text-sm"
+                            className="h-11"
                             {...register('confirmPassword')}
                         />
                         {errors.confirmPassword && (
-                            <p className="text-[10px] text-destructive font-medium">
+                            <p className="text-xs text-destructive font-medium">
                                 {errors.confirmPassword.message}
                             </p>
                         )}
                     </div>
 
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-3 pt-4 pb-6">
-                    <Button type="submit" className="w-full h-8 text-xs font-medium" disabled={isLoading}>
+                <CardFooter className="flex flex-col gap-4 px-8 pt-6 pb-8">
+                    <Button type="submit" className="w-full h-11 text-sm font-medium" disabled={isLoading}>
                         {isLoading ? 'Creating account...' : 'Create Account'}
                     </Button>
-                    <div className="text-center text-xs text-muted-foreground">
+                    <div className="text-center text-sm text-muted-foreground">
                         Already have an account?{' '}
                         <Link
                             href="/auth/login"
-                            className="underline underline-offset-2 hover:text-primary"
+                            className="font-medium text-primary hover:underline underline-offset-2"
                         >
                             Login
                         </Link>

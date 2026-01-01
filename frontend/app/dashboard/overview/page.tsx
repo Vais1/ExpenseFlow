@@ -36,54 +36,62 @@ export default function DashboardOverviewPage() {
         .reduce((sum, i) => sum + i.amount, 0);
 
     return (
-        <div className="space-y-4">
-            <h1 className="text-lg font-semibold tracking-tight">Dashboard</h1>
+        <div className="space-y-6">
+            <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+                <Card className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between pb-3 pt-5 px-6">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Total Spend</CardTitle>
+                        <div className="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center">
+                            <DollarSign className="h-4 w-4 text-emerald-600" />
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">${totalApprovedAmount.toFixed(2)}</div>
-                        <p className="text-xs text-muted-foreground">
+                    <CardContent className="px-6 pb-5">
+                        <div className="text-2xl font-bold tracking-tight">${totalApprovedAmount.toFixed(2)}</div>
+                        <p className="text-sm text-muted-foreground mt-1">
                             {approvedInvoices} approved
                         </p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                <Card className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between pb-3 pt-5 px-6">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
+                        <div className="h-9 w-9 rounded-full bg-amber-100 flex items-center justify-center">
+                            <Clock className="h-4 w-4 text-amber-600" />
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{pendingInvoices}</div>
-                        <p className="text-xs text-muted-foreground">
+                    <CardContent className="px-6 pb-5">
+                        <div className="text-2xl font-bold tracking-tight">{pendingInvoices}</div>
+                        <p className="text-sm text-muted-foreground mt-1">
                             Awaiting action
                         </p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Approved</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                <Card className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between pb-3 pt-5 px-6">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Approved</CardTitle>
+                        <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{approvedInvoices}</div>
-                        <p className="text-xs text-muted-foreground">
+                    <CardContent className="px-6 pb-5">
+                        <div className="text-2xl font-bold tracking-tight">{approvedInvoices}</div>
+                        <p className="text-sm text-muted-foreground mt-1">
                             {totalInvoices > 0 ? ((approvedInvoices / totalInvoices) * 100).toFixed(0) : 0}% of total
                         </p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-                        <XCircle className="h-4 w-4 text-muted-foreground" />
+                <Card className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between pb-3 pt-5 px-6">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle>
+                        <div className="h-9 w-9 rounded-full bg-red-100 flex items-center justify-center">
+                            <XCircle className="h-4 w-4 text-red-600" />
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{rejectedInvoices}</div>
-                        <p className="text-xs text-muted-foreground">
+                    <CardContent className="px-6 pb-5">
+                        <div className="text-2xl font-bold tracking-tight">{rejectedInvoices}</div>
+                        <p className="text-sm text-muted-foreground mt-1">
                             {totalInvoices > 0 ? ((rejectedInvoices / totalInvoices) * 100).toFixed(0) : 0}% of total
                         </p>
                     </CardContent>

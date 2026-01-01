@@ -72,69 +72,69 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <Card className="w-full shadow-sm border-slate-200">
-            <CardHeader className="space-y-1 pb-6">
-                <div className="flex justify-center mb-4">
+        <Card className="w-full shadow-lg border-slate-200/80 rounded-xl">
+            <CardHeader className="space-y-2 px-8 pt-8 pb-4">
+                <div className="flex justify-center mb-6">
                     <Image
                         src="/logo.svg"
                         alt="VendorPay Logo"
-                        width={48}
-                        height={48}
+                        width={56}
+                        height={56}
                         priority
                     />
                 </div>
-                <CardTitle className="text-lg font-semibold tracking-tight text-center">Admin / Manager Login</CardTitle>
-                <CardDescription className="text-xs text-center">
-                    Internal access only - login with your Admin or Manager credentials
+                <CardTitle className="text-xl font-semibold tracking-tight text-center">Admin Portal</CardTitle>
+                <CardDescription className="text-sm text-center text-muted-foreground">
+                    Sign in with your Admin or Manager credentials
                 </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-5 px-8">
                     {error && (
-                        <div className="bg-destructive/10 text-destructive text-xs p-2 rounded-sm font-medium">
+                        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg font-medium">
                             {error}
                         </div>
                     )}
-                    <div className="space-y-1.5">
-                        <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">Username</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="username" className="text-sm font-medium">Username</Label>
                         <Input
                             id="username"
-                            placeholder="Enter your admin username"
+                            placeholder="Enter admin username"
                             disabled={isLoading}
-                            className="h-8 text-sm"
+                            className="h-11"
                             {...register('username')}
                         />
                         {errors.username && (
-                            <p className="text-[10px] text-destructive font-medium">
+                            <p className="text-xs text-destructive font-medium">
                                 {errors.username.message}
                             </p>
                         )}
                     </div>
-                    <div className="space-y-1.5">
-                        <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">Password</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                         <Input
                             id="password"
                             type="password"
                             placeholder="Enter your password"
                             disabled={isLoading}
-                            className="h-8 text-sm"
+                            className="h-11"
                             {...register('password')}
                         />
                         {errors.password && (
-                            <p className="text-[10px] text-destructive font-medium">
+                            <p className="text-xs text-destructive font-medium">
                                 {errors.password.message}
                             </p>
                         )}
                     </div>
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-3 pt-4 pb-6">
-                    <Button type="submit" className="w-full h-8 text-xs font-medium" disabled={isLoading}>
+                <CardFooter className="flex flex-col gap-4 px-8 pt-6 pb-8">
+                    <Button type="submit" className="w-full h-11 text-sm font-medium" disabled={isLoading}>
                         {isLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
-                    <div className="text-center text-xs text-muted-foreground pt-2 border-t border-slate-100 w-full mt-2">
+                    <div className="text-center text-sm text-muted-foreground/70 pt-3 border-t border-slate-100 w-full">
                         <Link
                             href="/auth/login"
-                            className="text-muted-foreground/70 hover:text-primary"
+                            className="hover:text-primary transition-colors"
                         >
                             ← Back to User Login
                         </Link>
