@@ -48,6 +48,9 @@ public class Invoice
     [ForeignKey(nameof(UserId))]
     public virtual User User { get; set; } = null!;
 
+    [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters")]
+    public string? Notes { get; set; }
+
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -184,10 +184,18 @@ builder.Services.AddCors(options =>
     // Production CORS policy (use this in production)
     options.AddPolicy("Production", policy =>
     {
-        policy.WithOrigins("https://yourdomain.com", "https://www.yourdomain.com")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(o => o.Trim())
+            .ToArray();
+
+        if (allowedOrigins != null && allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
     });
 });
 

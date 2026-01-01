@@ -18,6 +18,9 @@ public class InvoiceCreateDto
 
     [StringLength(100, MinimumLength = 2, ErrorMessage = "Vendor name must be between 2 and 100 characters")]
     public string? VendorName { get; set; }
+
+    [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters")]
+    public string? Notes { get; set; }
 }
 
 public class InvoiceUpdateStatusDto
@@ -36,6 +39,7 @@ public class InvoiceReadDto
     public string Status { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
+    public string? Notes { get; set; }
     
     // Foreign Key References
     public int VendorId { get; set; }
@@ -68,6 +72,9 @@ public class InvoiceUpdateDto
 
     [StringLength(100, MinimumLength = 2, ErrorMessage = "Vendor name must be between 2 and 100 characters")]
     public string? VendorName { get; set; }
+
+    [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters")]
+    public string? Notes { get; set; }
 }
 
 /// <summary>
@@ -83,6 +90,20 @@ public class DashboardStatsDto
     public decimal TotalAmount { get; set; }
     public decimal PendingAmount { get; set; }
     public decimal ApprovedAmount { get; set; }
+}
+
+/// <summary>
+/// User's personal statistics
+/// </summary>
+public class UserStatsDto
+{
+    public int TotalSubmitted { get; set; }
+    public int PendingCount { get; set; }
+    public int ApprovedCount { get; set; }
+    public int RejectedCount { get; set; }
+    public int WithdrawnCount { get; set; }
+    public decimal TotalApprovedAmount { get; set; }
+    public decimal PendingAmount { get; set; }
 }
 
 /// <summary>

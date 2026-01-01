@@ -289,6 +289,29 @@ public class InvoiceController : ControllerBase
     }
 
     /// <summary>
+    /// Get user's own statistics
+    /// </summary>
+    [HttpGet("my-stats")]
+    [ProducesResponseType(typeof(UserStatsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUserStats()
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var stats = await _invoiceService.GetUserStatsAsync(userId);
+            return Ok(stats);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user stats");
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "An error occurred while retrieving user statistics"
+            });
+        }
+    }
+
+    /// <summary>
     /// Bulk update invoice status (Admin only)
     /// </summary>
     [HttpPost("bulk-status")]

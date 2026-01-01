@@ -24,6 +24,7 @@ public interface IInvoiceService
     Task<InvoiceReadDto?> UpdateInvoiceStatusAsync(int id, InvoiceUpdateStatusDto updateDto, int currentUserId, string currentUserRole, string currentUsername);
     Task<bool> DeleteInvoiceAsync(int id, int currentUserId, string currentUserRole, string currentUsername);
     Task<DashboardStatsDto> GetDashboardStatsAsync();
+    Task<UserStatsDto> GetUserStatsAsync(int userId);
     Task<int> BulkUpdateStatusAsync(BulkStatusUpdateDto dto, int currentUserId, string currentUserRole, string currentUsername);
 }
 
@@ -181,6 +182,7 @@ public class InvoiceService : IInvoiceService
         {
             Amount = createDto.Amount,
             Description = createDto.Description,
+            Notes = createDto.Notes,
             VendorId = finalVendorId,
             UserId = currentUserId,
             Status = InvoiceStatus.Pending,
@@ -526,6 +528,7 @@ public class InvoiceService : IInvoiceService
             Status = invoice.Status.ToString(),
             Description = invoice.Description,
             RejectionReason = invoice.RejectionReason,
+            Notes = invoice.Notes,
             VendorId = invoice.VendorId,
             UserId = invoice.UserId,
             VendorName = invoice.Vendor?.Name ?? string.Empty,
@@ -533,6 +536,27 @@ public class InvoiceService : IInvoiceService
             Username = invoice.User?.Username ?? string.Empty,
             CreatedAt = invoice.CreatedAt,
             UpdatedAt = invoice.UpdatedAt
+        };
+    }
+
+    /// <summary>
+    /// Get user's personal statistics
+    /// </summary>
+    public async Task<UserStatsDto> GetUserStatsAsync(int userId)
+    {
+        var invoices = await _context.Invoices
+            .Where(i => i.UserId == userId && !i.IsDeleted)
+            .ToListAsync();
+
+        return new UserStatsDto
+        {
+            TotalSubmitted = invoices.Count,
+            PendingCount = invoices.Count(i => i.Status == InvoiceStatus.Pending),
+            ApprovedCount = invoices.Count(i => i.Status == InvoiceStatus.Approved),
+            RejectedCount = invoices.Count(i => i.Status == InvoiceStatus.Rejected),
+            WithdrawnCount = invoices.Count(i => i.Status == InvoiceStatus.Withdrawn),
+            TotalApprovedAmount = invoices.Where(i => i.Status == InvoiceStatus.Approved).Sum(i => i.Amount),
+            PendingAmount = invoices.Where(i => i.Status == InvoiceStatus.Pending).Sum(i => i.Amount),
         };
     }
 }

@@ -93,6 +93,7 @@ export function CreateInvoiceDialog() {
             amount: data.amount,
             description: data.description,
             vendorName: finalVendorName,
+            notes: data.notes,
         }, {
             onSuccess: () => {
                 toast.success('Invoice created successfully');
@@ -223,6 +224,20 @@ export function CreateInvoiceDialog() {
                                         {errors.amount.message}
                                     </p>
                                 )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 items-start gap-4">
+                            <Label htmlFor="notes" className="text-right text-xs font-medium text-muted-foreground pt-2">
+                                Notes
+                            </Label>
+                            <div className="col-span-3">
+                                <textarea
+                                    id="notes"
+                                    placeholder="Optional notes or additional context..."
+                                    className="w-full h-16 px-3 py-2 text-xs border border-input rounded-md resize-none bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    {...register('notes')}
+                                />
                             </div>
                         </div>
                     </div>

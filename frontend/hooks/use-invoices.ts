@@ -304,3 +304,34 @@ export function useBulkUpdateStatus() {
         },
     });
 }
+
+// User's personal statistics
+interface UserStats {
+    totalSubmitted: number;
+    pendingCount: number;
+    approvedCount: number;
+    rejectedCount: number;
+    withdrawnCount: number;
+    totalApprovedAmount: number;
+    pendingAmount: number;
+}
+
+const UserStatsSchema = z.object({
+    totalSubmitted: z.number(),
+    pendingCount: z.number(),
+    approvedCount: z.number(),
+    rejectedCount: z.number(),
+    withdrawnCount: z.number(),
+    totalApprovedAmount: z.number(),
+    pendingAmount: z.number(),
+});
+
+export function useUserStats() {
+    return useQuery<UserStats>({
+        queryKey: ['user-stats'],
+        queryFn: async () => {
+            const { data } = await api.get('/invoice/my-stats');
+            return UserStatsSchema.parse(data);
+        },
+    });
+}

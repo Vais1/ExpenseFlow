@@ -149,6 +149,16 @@ export function InvoiceDetailDrawer({ invoiceId, open, onOpenChange }: InvoiceDe
                                     </div>
                                 </div>
 
+                                {/* Notes */}
+                                {invoice.notes && (
+                                    <div className="space-y-1 text-xs">
+                                        <div className="text-muted-foreground">Notes</div>
+                                        <div className="bg-blue-50 dark:bg-blue-950/30 rounded p-2 border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
+                                            {invoice.notes}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Rejection Reason */}
                                 {invoice.status === 'Rejected' && invoice.rejectionReason && (
                                     <div className="space-y-1 text-xs">

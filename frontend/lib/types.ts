@@ -45,6 +45,7 @@ export const InvoiceSchema = z.object({
     description: z.string(),
     status: InvoiceStatusEnum,
     rejectionReason: z.string().nullable().optional(),
+    notes: z.string().nullable().optional(),
     vendorId: z.number(),
     userId: z.number(),
     vendorName: z.string(),
@@ -60,6 +61,7 @@ export const InvoiceCreateSchema = z.object({
     vendorId: z.number().optional(),
     vendorName: z.string().optional(),
     customVendorName: z.string().optional(),
+    notes: z.string().optional(),
 }).refine(data => data.vendorName || data.customVendorName, {
     message: "Please select or enter a vendor",
     path: ["vendorName"]

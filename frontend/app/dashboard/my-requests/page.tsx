@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Trash2, ChevronDown, ChevronUp, MessageCircle, Search, Ban, Pencil, Undo2 } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronUp, MessageCircle, Search, Pencil, Undo2, Copy, FileText, Clock, CheckCircle, XCircle, DollarSign } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -13,6 +13,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     Select,
     SelectContent,
@@ -30,7 +32,7 @@ import { CreateInvoiceDialog } from '@/components/create-invoice-dialog';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { InvoiceDetailDrawer } from '@/components/invoice-detail-drawer';
 import { EditInvoiceDialog } from '@/components/edit-invoice-dialog';
-import { useInvoices, useDeleteInvoice, useWithdrawInvoice, InvoiceFilters } from '@/hooks/use-invoices';
+import { useInvoices, useDeleteInvoice, useWithdrawInvoice, useUserStats, InvoiceFilters } from '@/hooks/use-invoices';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { format } from 'date-fns';
@@ -51,6 +53,11 @@ export default function MyRequestsPage() {
     const debouncedSearch = useDebouncedValue(searchInput, 300);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+    const [duplicateInvoice, setDuplicateInvoice] = useState<Invoice | null>(null);
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+    // Fetch user's personal stats
+    const { data: userStats, isLoading: statsLoading } = useUserStats();
 
     // Build filters
     const filters: InvoiceFilters = useMemo(() => {
@@ -161,6 +168,61 @@ export default function MyRequestsPage() {
 
     return (
         <div className="space-y-4">
+            {/* Personal Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {statsLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <Card key={i} className="bg-card/50">
+                            <CardContent className="p-4">
+                                <Skeleton className="h-4 w-20 mb-2" />
+                                <Skeleton className="h-6 w-12" />
+                            </CardContent>
+                        </Card>
+                    ))
+                ) : userStats ? (
+                    <>
+                        <Card className="bg-card/50 border">
+                            <CardContent className="p-4">
+                                <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                                    <FileText className="h-3.5 w-3.5" />
+                                    <span>Total Submitted</span>
+                                </div>
+                                <div className="text-xl font-bold mt-1">{userStats.totalSubmitted}</div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-card/50 border">
+                            <CardContent className="p-4">
+                                <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500 text-xs">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    <span>Pending</span>
+                                </div>
+                                <div className="text-xl font-bold mt-1">{userStats.pendingCount}</div>
+                                <div className="text-[10px] text-muted-foreground">${userStats.pendingAmount.toFixed(2)}</div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-card/50 border">
+                            <CardContent className="p-4">
+                                <div className="flex items-center gap-2 text-green-600 dark:text-green-500 text-xs">
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    <span>Approved</span>
+                                </div>
+                                <div className="text-xl font-bold mt-1">{userStats.approvedCount}</div>
+                                <div className="text-[10px] text-muted-foreground">${userStats.totalApprovedAmount.toFixed(2)}</div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-card/50 border">
+                            <CardContent className="p-4">
+                                <div className="flex items-center gap-2 text-red-600 dark:text-red-500 text-xs">
+                                    <XCircle className="h-3.5 w-3.5" />
+                                    <span>Rejected</span>
+                                </div>
+                                <div className="text-xl font-bold mt-1">{userStats.rejectedCount}</div>
+                            </CardContent>
+                        </Card>
+                    </>
+                ) : null}
+            </div>
+
             <div className="flex items-center justify-between border-b pb-4">
                 <div>
                     <h1 className="text-lg font-semibold tracking-tight text-foreground">My Requests</h1>
@@ -319,7 +381,7 @@ export default function MyRequestsPage() {
                                                                 className="h-7 w-7 text-muted-foreground/30 cursor-not-allowed"
                                                                 disabled
                                                             >
-                                                                <Ban className="h-3.5 w-3.5" />
+                                                                <XCircle className="h-3.5 w-3.5" />
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent side="top" className="text-xs">
