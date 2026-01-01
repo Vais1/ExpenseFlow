@@ -81,14 +81,14 @@ export default function RegisterPage() {
 
     return (
         <Card className="w-full shadow-sm border-slate-200">
-            <CardHeader className="space-y-1 pb-2">
+            <CardHeader className="space-y-1 pb-6">
                 <CardTitle className="text-lg font-semibold tracking-tight">Register</CardTitle>
                 <CardDescription className="text-xs">
                     Create a new account to get started
                 </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <CardContent className="space-y-3 pt-2">
+                <CardContent className="space-y-4">
                     {error && (
                         <div className="bg-destructive/10 text-destructive text-xs p-2 rounded-sm font-medium">
                             {error}
@@ -154,7 +154,7 @@ export default function RegisterPage() {
                     </div>
 
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-3 pt-2">
+                <CardFooter className="flex flex-col space-y-3 pt-4 pb-6">
                     <Button type="submit" className="w-full h-8 text-xs font-medium" disabled={isLoading}>
                         {isLoading ? 'Creating account...' : 'Create Account'}
                     </Button>

@@ -55,7 +55,7 @@ export default function DashboardLayout({
                 {/* Mobile Header - hidden on desktop */}
                 <MobileSidebar />
 
-                <main className="flex-1 overflow-y-auto p-4 md:p-6 transition-all duration-300 ease-in-out">
+                <main className="flex-1 overflow-y-auto p-6 md:p-10 transition-all duration-300 ease-in-out">
                     <div className="mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
                         {children}
                     </div>
