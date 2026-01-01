@@ -51,3 +51,51 @@ public class InvoiceReadDto
     public DateTime UpdatedAt { get; set; }
 }
 
+/// <summary>
+/// DTO for User to edit their own pending invoice
+/// </summary>
+public class InvoiceUpdateDto
+{
+    [Required(ErrorMessage = "Amount is required")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero")]
+    public decimal Amount { get; set; }
+
+    [Required(ErrorMessage = "Description is required")]
+    [StringLength(500, MinimumLength = 5, ErrorMessage = "Description must be between 5 and 500 characters")]
+    public string Description { get; set; } = string.Empty;
+
+    public int? VendorId { get; set; }
+
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Vendor name must be between 2 and 100 characters")]
+    public string? VendorName { get; set; }
+}
+
+/// <summary>
+/// Dashboard statistics for Admin
+/// </summary>
+public class DashboardStatsDto
+{
+    public int TotalInvoices { get; set; }
+    public int PendingCount { get; set; }
+    public int ApprovedCount { get; set; }
+    public int RejectedCount { get; set; }
+    public int WithdrawnCount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public decimal PendingAmount { get; set; }
+    public decimal ApprovedAmount { get; set; }
+}
+
+/// <summary>
+/// Bulk status update for Admin
+/// </summary>
+public class BulkStatusUpdateDto
+{
+    [Required(ErrorMessage = "Invoice IDs are required")]
+    public List<int> InvoiceIds { get; set; } = new();
+
+    [Required(ErrorMessage = "Status is required")]
+    public InvoiceStatus Status { get; set; }
+
+    [StringLength(500, ErrorMessage = "Rejection reason cannot exceed 500 characters")]
+    public string? RejectionReason { get; set; }
+}

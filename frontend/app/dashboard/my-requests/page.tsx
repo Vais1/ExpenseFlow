@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Trash2, ChevronDown, ChevronUp, MessageCircle, Search, Ban } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronUp, MessageCircle, Search, Ban, Pencil, Undo2 } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -29,10 +29,12 @@ import {
 import { CreateInvoiceDialog } from '@/components/create-invoice-dialog';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { InvoiceDetailDrawer } from '@/components/invoice-detail-drawer';
-import { useInvoices, useDeleteInvoice, InvoiceFilters } from '@/hooks/use-invoices';
+import { EditInvoiceDialog } from '@/components/edit-invoice-dialog';
+import { useInvoices, useDeleteInvoice, useWithdrawInvoice, InvoiceFilters } from '@/hooks/use-invoices';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { format } from 'date-fns';
+import { Invoice } from '@/lib/types';
 
 type SortField = 'createdAt' | 'amount' | 'vendor' | 'status';
 type SortOrder = 'asc' | 'desc';
@@ -47,6 +49,8 @@ export default function MyRequestsPage() {
     const [drawerInvoiceId, setDrawerInvoiceId] = useState<number | null>(null);
     const [searchInput, setSearchInput] = useState('');
     const debouncedSearch = useDebouncedValue(searchInput, 300);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
     // Build filters
     const filters: InvoiceFilters = useMemo(() => {
@@ -65,6 +69,7 @@ export default function MyRequestsPage() {
 
     const { data: invoices, isLoading, error } = useInvoices(filters);
     const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
+    const { mutate: withdrawInvoice, isPending: isWithdrawing } = useWithdrawInvoice();
 
     const handleDeleteClick = (id: number, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -78,6 +83,17 @@ export default function MyRequestsPage() {
             setDeleteDialogOpen(false);
             setSelectedInvoiceId(null);
         }
+    };
+
+    const handleEditClick = (invoice: Invoice, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingInvoice(invoice);
+        setEditDialogOpen(true);
+    };
+
+    const handleWithdrawClick = (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        withdrawInvoice(id);
     };
 
     const handleSort = (field: SortField) => {
@@ -104,16 +120,17 @@ export default function MyRequestsPage() {
     };
 
     const getStatusBadge = (status: string, rejectionReason?: string | null) => {
+        const statusStyles: Record<string, string> = {
+            Approved: 'h-5 bg-green-50 text-green-700 border-green-200 hover:bg-green-50 px-2 text-[10px] uppercase tracking-wide font-semibold dark:bg-green-900/30 dark:text-green-400 dark:border-green-800',
+            Rejected: 'h-5 bg-red-50 text-red-700 border-red-200 hover:bg-red-50 px-2 text-[10px] uppercase tracking-wide font-semibold dark:bg-red-900/30 dark:text-red-400 dark:border-red-800',
+            Pending: 'h-5 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-50 px-2 text-[10px] uppercase tracking-wide font-semibold dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800',
+            Withdrawn: 'h-5 bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-100 px-2 text-[10px] uppercase tracking-wide font-semibold dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
+        };
+
         const badge = (
             <Badge
                 variant="outline"
-                className={
-                    status === 'Approved'
-                        ? 'h-5 bg-green-50 text-green-700 border-green-200 hover:bg-green-50 px-2 text-[10px] uppercase tracking-wide font-semibold'
-                        : status === 'Rejected'
-                            ? 'h-5 bg-red-50 text-red-700 border-red-200 hover:bg-red-50 px-2 text-[10px] uppercase tracking-wide font-semibold'
-                            : 'h-5 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-50 px-2 text-[10px] uppercase tracking-wide font-semibold'
-                }
+                className={statusStyles[status] || statusStyles.Pending}
             >
                 {status}
             </Badge>
@@ -238,17 +255,58 @@ export default function MyRequestsPage() {
                                         <TableCell>{getStatusBadge(invoice.status, invoice.rejectionReason)}</TableCell>
                                         <TableCell className="text-right">
                                             {invoice.status === 'Pending' ? (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-7 w-7 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
-                                                    onClick={(e) => handleDeleteClick(invoice.id, e)}
-                                                    disabled={isDeleting}
-                                                    title="Delete Invoice"
-                                                >
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                    <span className="sr-only">Delete</span>
-                                                </Button>
+                                                <div className="flex justify-end gap-1">
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7 text-muted-foreground/70 hover:text-primary hover:bg-primary/10"
+                                                                    onClick={(e) => handleEditClick(invoice, e)}
+                                                                    title="Edit Invoice"
+                                                                >
+                                                                    <Pencil className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="top" className="text-xs">Edit</TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7 text-muted-foreground/70 hover:text-amber-600 hover:bg-amber-50"
+                                                                    onClick={(e) => handleWithdrawClick(invoice.id, e)}
+                                                                    disabled={isWithdrawing}
+                                                                    title="Withdraw Invoice"
+                                                                >
+                                                                    <Undo2 className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="top" className="text-xs">Withdraw</TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
+                                                                    onClick={(e) => handleDeleteClick(invoice.id, e)}
+                                                                    disabled={isDeleting}
+                                                                    title="Delete Invoice"
+                                                                >
+                                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="top" className="text-xs">Delete</TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </div>
                                             ) : (
                                                 <TooltipProvider>
                                                     <Tooltip>
@@ -263,7 +321,7 @@ export default function MyRequestsPage() {
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent side="top" className="text-xs">
-                                                            Only pending invoices can be deleted
+                                                            {invoice.status === 'Withdrawn' ? 'Invoice was withdrawn' : 'Only pending invoices can be modified'}
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
@@ -284,6 +342,12 @@ export default function MyRequestsPage() {
                 title="Delete Invoice"
                 description="Are you sure you want to delete this invoice? This action cannot be undone."
                 isPending={isDeleting}
+            />
+
+            <EditInvoiceDialog
+                invoice={editingInvoice}
+                open={editDialogOpen}
+                onOpenChange={setEditDialogOpen}
             />
 
             <InvoiceDetailDrawer

@@ -7,7 +7,8 @@ public enum InvoiceStatus
 {
     Pending = 0,
     Approved = 1,
-    Rejected = 2
+    Rejected = 2,
+    Withdrawn = 3
 }
 
 public class Invoice

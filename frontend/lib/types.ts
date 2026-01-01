@@ -36,7 +36,7 @@ export type VendorUpdateDto = z.infer<typeof VendorUpdateSchema>;
 
 // --- Invoice Types ---
 
-export const InvoiceStatusEnum = z.enum(["Pending", "Approved", "Rejected"]);
+export const InvoiceStatusEnum = z.enum(["Pending", "Approved", "Rejected", "Withdrawn"]);
 export type InvoiceStatus = z.infer<typeof InvoiceStatusEnum>;
 
 export const InvoiceSchema = z.object({

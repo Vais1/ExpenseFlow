@@ -175,6 +175,162 @@ public class InvoiceController : ControllerBase
     }
 
     /// <summary>
+    /// Edit a pending invoice (User only, own invoices)
+    /// </summary>
+    [HttpPut("{id}")]
+    [Authorize(Roles = "User,Admin")]
+    [ProducesResponseType(typeof(InvoiceReadDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateInvoice(int id, [FromBody] InvoiceUpdateDto updateDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var currentUserRole = GetCurrentUserRole();
+            var currentUsername = GetCurrentUsername();
+
+            var invoice = await _invoiceService.UpdateInvoiceAsync(id, updateDto, currentUserId, currentUserRole, currentUsername);
+            if (invoice == null)
+            {
+                return NotFound(new { message = $"Invoice with ID {id} not found" });
+            }
+
+            return Ok(invoice);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating invoice {InvoiceId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "An error occurred while updating the invoice"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Withdraw a pending invoice (User only, own invoices)
+    /// </summary>
+    [HttpPost("{id}/withdraw")]
+    [Authorize(Roles = "User,Admin")]
+    [ProducesResponseType(typeof(InvoiceReadDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> WithdrawInvoice(int id)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var currentUserRole = GetCurrentUserRole();
+            var currentUsername = GetCurrentUsername();
+
+            var invoice = await _invoiceService.WithdrawInvoiceAsync(id, currentUserId, currentUserRole, currentUsername);
+            if (invoice == null)
+            {
+                return NotFound(new { message = $"Invoice with ID {id} not found" });
+            }
+
+            return Ok(invoice);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error withdrawing invoice {InvoiceId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "An error occurred while withdrawing the invoice"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get dashboard statistics (Admin only)
+    /// </summary>
+    [HttpGet("stats")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(DashboardStatsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetDashboardStats()
+    {
+        try
+        {
+            var stats = await _invoiceService.GetDashboardStatsAsync();
+            return Ok(stats);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving dashboard stats");
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "An error occurred while retrieving dashboard statistics"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Bulk update invoice status (Admin only)
+    /// </summary>
+    [HttpPost("bulk-status")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> BulkUpdateStatus([FromBody] BulkStatusUpdateDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var currentUserRole = GetCurrentUserRole();
+            var currentUsername = GetCurrentUsername();
+
+            var updatedCount = await _invoiceService.BulkUpdateStatusAsync(dto, currentUserId, currentUserRole, currentUsername);
+            return Ok(new { message = $"Successfully updated {updatedCount} invoices", count = updatedCount });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error bulk updating invoice status");
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "An error occurred while bulk updating invoices"
+            });
+        }
+    }
+
+    /// <summary>
     /// Update invoice status (Admin only)
     /// </summary>
     [HttpPatch("{id}/status")]

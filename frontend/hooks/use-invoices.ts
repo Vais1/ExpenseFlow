@@ -172,4 +172,135 @@ export function useDeleteInvoice() {
     });
 }
 
+// --- New Hooks ---
 
+export interface InvoiceUpdateDto {
+    amount: number;
+    description: string;
+    vendorId?: number;
+    vendorName?: string;
+}
+
+export function useUpdateInvoice() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, data }: { id: number; data: InvoiceUpdateDto }) => {
+            const { data: response } = await api.put(`/invoice/${id}`, data);
+            return InvoiceSchema.parse(response);
+        },
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+            queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(id) });
+            toast.success("Invoice Updated", {
+                description: "Your invoice has been updated successfully.",
+            });
+        },
+        onError: (error: unknown) => {
+            const err = error as { response?: { data?: { message?: string } } };
+            toast.error("Update Failed", {
+                description: err.response?.data?.message ?? "Failed to update invoice.",
+            });
+        },
+    });
+}
+
+export function useWithdrawInvoice() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: number) => {
+            const { data } = await api.post(`/invoice/${id}/withdraw`);
+            return InvoiceSchema.parse(data);
+        },
+        onMutate: async (id: number) => {
+            await queryClient.cancelQueries({ queryKey: invoiceKeys.all });
+            const previousInvoices = queryClient.getQueryData<Invoice[]>(invoiceKeys.all);
+
+            // Optimistic update
+            queryClient.setQueriesData<Invoice[]>(
+                { queryKey: invoiceKeys.all },
+                (old) => old?.map((inv) => (inv.id === id ? { ...inv, status: 'Withdrawn' as InvoiceStatus } : inv))
+            );
+
+            return { previousInvoices };
+        },
+        onError: (err, _id, context) => {
+            if (context?.previousInvoices) {
+                queryClient.setQueryData(invoiceKeys.all, context.previousInvoices);
+            }
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error("Withdraw Failed", {
+                description: error.response?.data?.message ?? "Failed to withdraw invoice.",
+            });
+        },
+        onSuccess: () => {
+            toast.success("Invoice Withdrawn", {
+                description: "Your invoice has been withdrawn successfully.",
+            });
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+        },
+    });
+}
+
+export interface DashboardStats {
+    totalInvoices: number;
+    pendingCount: number;
+    approvedCount: number;
+    rejectedCount: number;
+    withdrawnCount: number;
+    totalAmount: number;
+    pendingAmount: number;
+    approvedAmount: number;
+}
+
+const DashboardStatsSchema = z.object({
+    totalInvoices: z.number(),
+    pendingCount: z.number(),
+    approvedCount: z.number(),
+    rejectedCount: z.number(),
+    withdrawnCount: z.number(),
+    totalAmount: z.number(),
+    pendingAmount: z.number(),
+    approvedAmount: z.number(),
+});
+
+export function useDashboardStats() {
+    return useQuery({
+        queryKey: ['dashboard-stats'],
+        queryFn: async () => {
+            const { data } = await api.get('/invoice/stats');
+            return DashboardStatsSchema.parse(data);
+        },
+    });
+}
+
+export function useBulkUpdateStatus() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ invoiceIds, status, rejectionReason }: { invoiceIds: number[]; status: InvoiceStatus; rejectionReason?: string }) => {
+            const statusNum = status === 'Approved' ? 1 : 2;
+            const { data } = await api.post('/invoice/bulk-status', {
+                invoiceIds,
+                status: statusNum,
+                rejectionReason,
+            });
+            return data as { message: string; count: number };
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+            toast.success("Bulk Update Complete", {
+                description: data.message,
+            });
+        },
+        onError: (error: unknown) => {
+            const err = error as { response?: { data?: { message?: string } } };
+            toast.error("Bulk Update Failed", {
+                description: err.response?.data?.message ?? "Failed to update invoices.",
+            });
+        },
+    });
+}
