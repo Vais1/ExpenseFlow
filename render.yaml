@@ -4,33 +4,33 @@ services:
   # --------------------------------------------------------------------------------
   - type: web
     name: expenseflow-api
-    runtime: docker
-    region: sgp # Singapore (change if preferred)
+    env: docker
+    region: sgp # Singapore
     plan: free
-    rootDir: backend
-    dockerContext: backend
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ASPNETCORE_URLS
         value: http://+:8080
       - key: DATABASE_URL
-        sync: false # User must provide this in Render Dashboard
+        sync: false
       - key: JwtSettings__SecretKey
-        sync: false # User must provide this (random >32 chars)
+        sync: false
       - key: ALLOWED_ORIGINS
-        sync: false # Set to frontend URL after deploy (e.g., https://expenseflow-web.onrender.com)
+        sync: false 
 
   # --------------------------------------------------------------------------------
   # FRONTEND SERVICE (Next.js)
   # --------------------------------------------------------------------------------
   - type: web
     name: expenseflow-web
-    runtime: docker
+    env: docker
     region: sgp
     plan: free
-    rootDir: frontend
-    dockerContext: frontend
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        sync: false # Set to backend URL (e.g., https://expenseflow-api.onrender.com)
+        sync: false 
