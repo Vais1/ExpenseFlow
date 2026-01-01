@@ -59,7 +59,8 @@ export default function MyRequestsPage() {
             sortOrder,
         };
         if (statusFilter !== 'all') {
-            f.status = statusFilter === 'pending' ? 0 : statusFilter === 'approved' ? 1 : 2;
+            const statusMap: Record<string, number> = { pending: 0, approved: 1, rejected: 2, withdrawn: 3 };
+            f.status = statusMap[statusFilter];
         }
         if (debouncedSearch.trim()) {
             f.search = debouncedSearch.trim();
@@ -183,6 +184,7 @@ export default function MyRequestsPage() {
                             <SelectItem value="pending" className="text-xs">Pending</SelectItem>
                             <SelectItem value="approved" className="text-xs">Approved</SelectItem>
                             <SelectItem value="rejected" className="text-xs">Rejected</SelectItem>
+                            <SelectItem value="withdrawn" className="text-xs">Withdrawn</SelectItem>
                         </SelectContent>
                     </Select>
                     <CreateInvoiceDialog />

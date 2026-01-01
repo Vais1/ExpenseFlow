@@ -11,7 +11,9 @@ import {
     User,
     Building2,
     DollarSign,
-    Loader2
+    Loader2,
+    Undo2,
+    ArrowLeftCircle
 } from 'lucide-react';
 import {
     Sheet,
@@ -33,20 +35,22 @@ interface InvoiceDetailDrawerProps {
     onOpenChange: (open: boolean) => void;
 }
 
-const actionIcons: Record<InvoiceActivityAction, React.ReactNode> = {
+const actionIcons: Record<string, React.ReactNode> = {
     Created: <FileText className="h-3.5 w-3.5 text-blue-500" />,
     Approved: <Check className="h-3.5 w-3.5 text-green-500" />,
     Rejected: <X className="h-3.5 w-3.5 text-red-500" />,
     Updated: <Edit className="h-3.5 w-3.5 text-orange-500" />,
     Deleted: <Trash2 className="h-3.5 w-3.5 text-gray-500" />,
+    Withdrawn: <Undo2 className="h-3.5 w-3.5 text-slate-500" />,
 };
 
-const actionColors: Record<InvoiceActivityAction, string> = {
-    Created: 'bg-blue-100 border-blue-200',
-    Approved: 'bg-green-100 border-green-200',
-    Rejected: 'bg-red-100 border-red-200',
-    Updated: 'bg-orange-100 border-orange-200',
-    Deleted: 'bg-gray-100 border-gray-200',
+const actionColors: Record<string, string> = {
+    Created: 'bg-blue-100 border-blue-200 dark:bg-blue-900/40 dark:border-blue-800',
+    Approved: 'bg-green-100 border-green-200 dark:bg-green-900/40 dark:border-green-800',
+    Rejected: 'bg-red-100 border-red-200 dark:bg-red-900/40 dark:border-red-800',
+    Updated: 'bg-orange-100 border-orange-200 dark:bg-orange-900/40 dark:border-orange-800',
+    Deleted: 'bg-gray-100 border-gray-200 dark:bg-gray-800 dark:border-gray-700',
+    Withdrawn: 'bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700',
 };
 
 export function InvoiceDetailDrawer({ invoiceId, open, onOpenChange }: InvoiceDetailDrawerProps) {
@@ -57,11 +61,13 @@ export function InvoiceDetailDrawer({ invoiceId, open, onOpenChange }: InvoiceDe
         const baseClasses = 'h-5 px-2 text-[10px] uppercase tracking-wide font-semibold';
         switch (status) {
             case 'Approved':
-                return <Badge variant="outline" className={`${baseClasses} bg-green-50 text-green-700 border-green-200`}>Approved</Badge>;
+                return <Badge variant="outline" className={`${baseClasses} bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800`}>Approved</Badge>;
             case 'Rejected':
-                return <Badge variant="outline" className={`${baseClasses} bg-red-50 text-red-700 border-red-200`}>Rejected</Badge>;
+                return <Badge variant="outline" className={`${baseClasses} bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800`}>Rejected</Badge>;
+            case 'Withdrawn':
+                return <Badge variant="outline" className={`${baseClasses} bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700`}>Withdrawn</Badge>;
             default:
-                return <Badge variant="outline" className={`${baseClasses} bg-yellow-50 text-yellow-700 border-yellow-200`}>Pending</Badge>;
+                return <Badge variant="outline" className={`${baseClasses} bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800`}>Pending</Badge>;
         }
     };
 
@@ -208,8 +214,18 @@ export function InvoiceDetailDrawer({ invoiceId, open, onOpenChange }: InvoiceDe
 
                                                         {/* Show rejection reason in metadata */}
                                                         {activity.action === 'Rejected' && meta?.rejectionReason && (
-                                                            <div className="mt-1 text-[10px] text-red-600 bg-red-50 rounded px-2 py-1">
+                                                            <div className="mt-1 text-[10px] text-red-600 bg-red-50 dark:bg-red-950/50 dark:text-red-400 rounded px-2 py-1">
                                                                 Reason: {meta.rejectionReason}
+                                                            </div>
+                                                        )}
+                                                        {activity.action === 'Updated' && meta && (
+                                                            <div className="mt-1 text-[10px] text-orange-600 bg-orange-50 dark:bg-orange-950/50 dark:text-orange-400 rounded px-2 py-1">
+                                                                {meta.changes ? `Changed: ${meta.changes.join(', ')}` : 'Invoice details updated'}
+                                                            </div>
+                                                        )}
+                                                        {activity.action === 'Withdrawn' && (
+                                                            <div className="mt-1 text-[10px] text-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-slate-400 rounded px-2 py-1">
+                                                                User cancelled this request
                                                             </div>
                                                         )}
                                                     </div>

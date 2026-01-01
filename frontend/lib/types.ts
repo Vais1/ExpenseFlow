@@ -76,7 +76,7 @@ export type InvoiceUpdateStatusDto = z.infer<typeof InvoiceUpdateStatusSchema>;
 
 // --- Invoice Activity Types (Audit Log) ---
 
-export const InvoiceActivityActionEnum = z.enum(["Created", "Approved", "Rejected", "Updated", "Deleted"]);
+export const InvoiceActivityActionEnum = z.enum(["Created", "Approved", "Rejected", "Updated", "Deleted", "Withdrawn"]);
 export type InvoiceActivityAction = z.infer<typeof InvoiceActivityActionEnum>;
 
 export const InvoiceActivitySchema = z.object({

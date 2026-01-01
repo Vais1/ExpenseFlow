@@ -9,7 +9,8 @@ public enum InvoiceActivityAction
     Approved = 1,
     Rejected = 2,
     Updated = 3,
-    Deleted = 4
+    Deleted = 4,
+    Withdrawn = 5
 }
 
 public class InvoiceActivity

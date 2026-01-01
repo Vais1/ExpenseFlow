@@ -338,11 +338,11 @@ public class InvoiceService : IInvoiceService
         // Log activity
         await _activityService.LogActivityAsync(
             id,
-            InvoiceActivityAction.Updated,
+            InvoiceActivityAction.Withdrawn,
             currentUserId,
             currentUsername,
             currentUserRole,
-            new { action = "Withdrawn", previousStatus = "Pending", newStatus = "Withdrawn" }
+            new { previousStatus = "Pending", newStatus = "Withdrawn" }
         );
 
         return MapToReadDto(invoice);
