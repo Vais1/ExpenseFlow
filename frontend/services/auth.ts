@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { api } from '@/lib/api';
 
-export type UserRole = 'Admin' | 'Management' | 'User';
+export type UserRole = 'Admin' | 'User';
 
 // --- DTO Schemas ---
 const UserSchema = z.object({
     id: z.coerce.string(), // Backend might send number or string
     username: z.string(),
-    role: z.enum(['Admin', 'Management', 'User']),
+    role: z.enum(['Admin', 'User']),
 });
 
 const LoginResponseSchema = z.object({
@@ -19,16 +19,10 @@ const LoginResponseSchema = z.object({
 
 const RegisterResponseSchema = LoginResponseSchema; // Same structure
 
-const CreateManagerResponseSchema = z.object({
-    success: z.boolean(),
-    message: z.string().optional(),
-    user: UserSchema.optional(),
-});
-
 const MeResponseSchema = z.object({
     userId: z.coerce.string(),
     username: z.string(),
-    role: z.enum(['Admin', 'Management', 'User']),
+    role: z.enum(['Admin', 'User']),
     message: z.string().optional(),
 });
 
@@ -77,18 +71,6 @@ export const authService = {
 
         this.persistSession(session);
         return session;
-    },
-
-    /**
-     * Admin-only: Create a Manager account
-     */
-    async createManager(username: string, password: string): Promise<{ success: boolean; message?: string; user?: User }> {
-        const response = await api.post('auth/create-manager', {
-            username,
-            password,
-        });
-
-        return CreateManagerResponseSchema.parse(response.data);
     },
 
     async refreshSession(): Promise<AuthSession | null> {

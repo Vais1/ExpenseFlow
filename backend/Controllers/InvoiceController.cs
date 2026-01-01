@@ -136,7 +136,7 @@ public class InvoiceController : ControllerBase
     /// Create a new invoice
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "User,Management,Admin")]
+    [Authorize(Roles = "User,Admin")]
     [ProducesResponseType(typeof(InvoiceReadDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateInvoice([FromBody] InvoiceCreateDto createDto)
@@ -175,10 +175,10 @@ public class InvoiceController : ControllerBase
     }
 
     /// <summary>
-    /// Update invoice status (Management and Admin only)
+    /// Update invoice status (Admin only)
     /// </summary>
     [HttpPatch("{id}/status")]
-    [Authorize(Roles = "Management,Admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(InvoiceReadDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

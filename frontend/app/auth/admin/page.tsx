@@ -48,21 +48,15 @@ export default function AdminLoginPage() {
         try {
             const session = await authService.login(data.username, data.password);
 
-            // Validate role - only Admin and Management allowed here
-            if (session.user.role === 'User') {
-                setError('This login is for Admin and Manager accounts only. Please use the User login.');
+            // Validate role - only Admin allowed here
+            if (session.user.role !== 'Admin') {
+                setError('This login is for Admin accounts only. Please use the User login.');
                 authService.logout();
                 return;
             }
 
-            // Role-based redirect
-            if (session.user.role === 'Admin') {
-                router.push('/dashboard/overview');
-            } else if (session.user.role === 'Management') {
-                router.push('/dashboard/approvals');
-            } else {
-                router.push('/dashboard');
-            }
+            // Redirect to admin dashboard
+            router.push('/dashboard/overview');
         } catch (err: unknown) {
             const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Invalid username or password';
             setError(message);
@@ -85,7 +79,7 @@ export default function AdminLoginPage() {
                 </div>
                 <CardTitle className="text-xl font-semibold tracking-tight text-center">Admin Portal</CardTitle>
                 <CardDescription className="text-sm text-center text-muted-foreground">
-                    Sign in with your Admin or Manager credentials
+                    Sign in with your Admin credentials
                 </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit(onSubmit)}>

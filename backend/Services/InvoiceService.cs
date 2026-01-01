@@ -208,9 +208,9 @@ public class InvoiceService : IInvoiceService
     public async Task<InvoiceReadDto?> UpdateInvoiceStatusAsync(int id, InvoiceUpdateStatusDto updateDto, int currentUserId, string currentUserRole, string currentUsername)
     {
         // Role check
-        if (currentUserRole != UserRole.Management.ToString() && currentUserRole != UserRole.Admin.ToString())
+        if (currentUserRole != UserRole.Admin.ToString())
         {
-            throw new UnauthorizedAccessException("Only Management and Admin can update invoice status");
+            throw new UnauthorizedAccessException("Only Admin can update invoice status");
         }
 
         // Validate rejection reason

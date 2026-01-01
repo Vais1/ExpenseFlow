@@ -70,7 +70,7 @@ export default function ApprovalsPage() {
 
     useEffect(() => {
         const session = authService.getSession();
-        if (!session || (session.user.role !== 'Admin' && session.user.role !== 'Management')) {
+        if (!session || session.user.role !== 'Admin') {
             router.push('/dashboard');
         } else {
             setIsAuthorized(true);

@@ -158,8 +158,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("ManagementOrAdmin", policy => policy.RequireRole("Management", "Admin"));
-    options.AddPolicy("AllUsers", policy => policy.RequireRole("User", "Management", "Admin"));
+    options.AddPolicy("AllUsers", policy => policy.RequireRole("User", "Admin"));
 });
 
 // Register Generic Repository

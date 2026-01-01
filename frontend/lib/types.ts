@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // --- User Types ---
 
-export const UserRoleEnum = z.enum(["User", "Management", "Admin"]);
+export const UserRoleEnum = z.enum(["User", "Admin"]);
 export type UserRole = z.infer<typeof UserRoleEnum>;
 
 // --- Vendor Types ---

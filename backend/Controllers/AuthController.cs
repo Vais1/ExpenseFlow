@@ -105,50 +105,6 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Admin-only: Create a Manager account
-    /// </summary>
-    /// <param name="dto">Manager account details</param>
-    /// <returns>Auth response with created user info</returns>
-    [HttpPost("create-manager")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> CreateManager([FromBody] CreateManagerDto dto)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(new AuthResponseDto
-            {
-                Success = false,
-                Message = "Invalid input data"
-            });
-        }
-
-        try
-        {
-            var result = await _authService.CreateManagerAsync(dto);
-
-            if (!result.Success)
-            {
-                return BadRequest(result);
-            }
-
-            _logger.LogInformation("Admin created Manager account: {Username}", dto.Username);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating Manager account: {Username}", dto.Username);
-            return StatusCode(StatusCodes.Status500InternalServerError, new AuthResponseDto
-            {
-                Success = false,
-                Message = "An error occurred while creating Manager account"
-            });
-        }
-    }
-
-    /// <summary>
     /// Test endpoint to verify authentication
     /// </summary>
     /// <returns>User information</returns>

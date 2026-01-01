@@ -6,8 +6,7 @@ namespace VendorPay.Models;
 public enum UserRole
 {
     User = 0,
-    Management = 1,
-    Admin = 2
+    Admin = 1
 }
 
 public class User
