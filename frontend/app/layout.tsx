@@ -9,11 +9,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: "VendorPay",
   description: "Invoice Approval System",
-  icons: {
-    icon: "/logo.svg",
-    shortcut: "/logo.svg",
-    apple: "/logo.svg",
-  }
+
 };
 
 export default function RootLayout({
