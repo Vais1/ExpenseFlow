@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
 
             // Validate role - only Admin allowed here
             if (session.user.role !== 'Admin') {
-                setError('This login is for Admin accounts only. Please use the User login.');
+                setError('Invalid username or password');
                 authService.logout();
                 return;
             }

@@ -125,14 +125,7 @@ export default function LoginPage() {
                             Register
                         </Link>
                     </div>
-                    <div className="text-center text-sm text-muted-foreground/70 pt-3 border-t border-slate-100 w-full">
-                        <Link
-                            href="/auth/admin"
-                            className="hover:text-primary transition-colors"
-                        >
-                            Admin / Manager Login →
-                        </Link>
-                    </div>
+
                 </CardFooter>
             </form>
         </Card>

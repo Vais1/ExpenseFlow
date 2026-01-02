@@ -1,9 +1,8 @@
 "use client";
 
-import { MoonIcon, SunIcon } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const ThemeSwitch = ({
@@ -15,63 +14,52 @@ const ThemeSwitch = ({
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="w-9 h-9" />; // Prevent layout shift with placeholder
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div
+        className={cn(
+          "flex items-center p-1 rounded-full bg-muted/50 border border-border/50 h-9 w-[76px]",
+          className
+        )}
+      />
+    );
+  }
 
   return (
     <div
       className={cn(
-        "relative flex items-center justify-center", // center the whole control
-        "h-9 w-20", // track sized to hug the icons
+        "flex items-center gap-1 p-1 rounded-full bg-muted/50 border border-border/50",
         className
       )}
       {...props}
     >
-      {/* The real shadcn Switch (full-size, same structure) */}
-      <Switch
-        checked={resolvedTheme === "dark"}
-        onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+      <button
+        type="button"
+        onClick={() => setTheme("light")}
         className={cn(
-          // root (track)
-          "peer absolute inset-0 h-full w-full rounded-full bg-input/50 transition-colors",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          // tune the default thumb size & z-index so it slides over icons
-          "[&>span]:h-7 [&>span]:w-7 [&>span]:rounded-full [&>span]:bg-background [&>span]:shadow [&>span]:z-10",
-          // override default translate distances so the thumb moves across 20px track padding + icon spacing
-          "data-[state=unchecked]:[&>span]:translate-x-1",
-          "data-[state=checked]:[&>span]:translate-x-[44px]" // 44 ≈ w-20(80) - padding - thumb(28)
+          "relative flex items-center justify-center rounded-full p-1.5 transition-all duration-300 min-w-[28px] min-h-[28px]",
+          resolvedTheme === "light"
+            ? "bg-primary text-primary-foreground shadow-sm ring-0"
+            : "text-muted-foreground hover:text-foreground"
         )}
-      />
-
-      {/* Icons overlaid inside the track, perfectly centered left/right */}
-      <span
-        className={cn(
-          "pointer-events-none absolute left-2 inset-y-0 z-0",
-          "flex items-center justify-center"
-        )}
+        aria-label="Switch to light mode"
       >
-        <SunIcon
-          size={16}
-          className={cn(
-            "transition-all duration-200 ease-out",
-            resolvedTheme === "dark" ? "text-muted-foreground/70" : "text-foreground scale-110"
-          )}
-        />
-      </span>
-
-      <span
+        <Sun size={16} className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setTheme("dark")}
         className={cn(
-          "pointer-events-none absolute right-2 inset-y-0 z-0",
-          "flex items-center justify-center"
+          "relative flex items-center justify-center rounded-full p-1.5 transition-all duration-300 min-w-[28px] min-h-[28px]",
+          resolvedTheme === "dark"
+            ? "bg-primary text-primary-foreground shadow-sm ring-0"
+            : "text-muted-foreground hover:text-foreground"
         )}
+        aria-label="Switch to dark mode"
       >
-        <MoonIcon
-          size={16}
-          className={cn(
-            "transition-all duration-200 ease-out",
-            resolvedTheme === "dark" ? "text-foreground scale-110" : "text-muted-foreground/70"
-          )}
-        />
-      </span>
+        <Moon size={16} className="h-4 w-4" />
+      </button>
     </div>
   );
 };

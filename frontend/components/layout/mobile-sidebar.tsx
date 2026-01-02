@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, Wallet } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { SidebarNav } from './sidebar-nav';
 import ThemeSwitch from '@/components/theme-switch';
 import { authService, AuthSession } from '@/services/auth';
@@ -26,8 +26,8 @@ export function MobileSidebar() {
     return (
         <div className="md:hidden flex items-center justify-between p-4 bg-background border-b h-14 sticky top-0 z-50">
             <div className="flex items-center gap-2">
-                <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <Wallet className="h-4 w-4 text-primary-foreground" />
+                <div className="h-8 w-8 relative flex-shrink-0">
+                    <img src="/logo.svg" alt="VendorPay Logo" className="h-full w-full object-contain" />
                 </div>
                 <span className="font-semibold text-sm">VendorPay</span>
             </div>
@@ -44,8 +44,8 @@ export function MobileSidebar() {
                     <SheetContent side="left" className="w-[280px] p-0 gap-0">
                         <SheetHeader className="p-4 border-b text-left">
                             <SheetTitle className="flex items-center gap-2 text-sm font-semibold">
-                                <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                                    <Wallet className="h-4 w-4 text-primary-foreground" />
+                                <div className="h-8 w-8 relative flex-shrink-0">
+                                    <img src="/logo.svg" alt="VendorPay Logo" className="h-full w-full object-contain" />
                                 </div>
                                 VendorPay
                             </SheetTitle>
