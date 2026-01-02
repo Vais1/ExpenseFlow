@@ -12,12 +12,12 @@ export default function NotFound() {
                     <Link href="/" className="flex items-center gap-2">
                         <Image
                             src="/logo.svg"
-                            alt="ExpenseFlow"
+                            alt="VendorPay"
                             width={28}
                             height={28}
                             className="dark:brightness-110"
                         />
-                        <span className="font-semibold text-foreground">ExpenseFlow</span>
+                        <span className="font-semibold text-foreground">VendorPay</span>
                     </Link>
                 </div>
             </header>
@@ -50,7 +50,7 @@ export default function NotFound() {
             {/* Footer */}
             <footer className="border-t border-border/50">
                 <div className="max-w-5xl mx-auto px-6 py-6 text-center text-sm text-muted-foreground">
-                    <span>© 2026 ExpenseFlow</span>
+                    <span>© 2026 VendorPay</span>
                 </div>
             </footer>
         </div>

@@ -14,12 +14,12 @@ export default function LandingPage() {
                     <Link href="/" className="flex items-center gap-2.5">
                         <Image
                             src="/logo.svg"
-                            alt="ExpenseFlow"
+                            alt="VendorPay"
                             width={32}
                             height={32}
                             className="dark:brightness-110"
                         />
-                        <span className="text-lg font-semibold text-foreground tracking-tight">ExpenseFlow</span>
+                        <span className="text-lg font-semibold text-foreground tracking-tight">VendorPay</span>
                     </Link>
                     <div className="flex items-center gap-3">
                         <ThemeToggle />
@@ -161,8 +161,8 @@ export default function LandingPage() {
             <footer className="border-t border-border/40 mt-16">
                 <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                        <Image src="/logo.svg" alt="ExpenseFlow" width={20} height={20} className="opacity-60" />
-                        <span>© 2026 ExpenseFlow</span>
+                        <Image src="/logo.svg" alt="VendorPay" width={20} height={20} className="opacity-60" />
+                        <span>© 2026 VendorPay</span>
                     </div>
                     <span>Built with Next.js & .NET</span>
                 </div>
